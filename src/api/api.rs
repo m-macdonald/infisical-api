@@ -101,20 +101,7 @@ pub async fn create_project_secrets(client: &reqwest::Client, request: models::C
 
 pub async fn get_project_secrets(client: &reqwest::Client, request: models::GetProjectSecretsRequest) -> Result<models::GetProjectSecretsResponse> {
     let endpoint = format!("{}/v2/secrets", request.base_url);
-//    println!("{:#?}", serde_json::to_string(&request));
-//    println!("{:#?}", client.get(&endpoint).json(&request).build());
-    println!("{:#?}", client.get(&endpoint).query(&request).send().await);
-    /*
     Ok(client
         .get(endpoint).query(&request).send().await?
         .json::<models::GetProjectSecretsResponse>().await?)
-        */
-
-    let response = client
-        .get(endpoint).query(&request).send().await?;
-
-    println!("{:#?}", response);
-    let json = response.json::<models::GetProjectSecretsResponse>().await?;
-
-    Ok(json)
 }
