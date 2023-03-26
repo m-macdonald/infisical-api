@@ -1,36 +1,26 @@
-use aes_gcm::{
-    aead::{Aead, KeyInit, Payload, AeadCore, OsRng, generic_array::typenum::U16},
-    aes::Aes256,
-    AesGcm,
-    Nonce,
-    Tag,
-};
-use rand::distributions::{Alphanumeric, DistString};
-use String;
-use crate::utils::base64;
 use crate::error::Result;
+use crate::utils::base64;
+use aes_gcm::{
+    aead::{generic_array::typenum::U16, Aead, AeadCore, KeyInit, OsRng},
+    aes::Aes256,
+    AesGcm, Nonce,
+};
 
-
-pub fn encrypt(text: &String, secret: &String) -> Encryption {
-    //let nonce = Alphanumeric.sample_string(&mut rand::thread_rng(), 12);
-   // let nonce = Nonce::from_slice(nonce.as_bytes();
+pub fn encrypt(text: &str, secret: &str) -> Result<Encryption> {
     let nonce = AesGcm::<Aes256, U16>::generate_nonce(&mut OsRng);
-//    let tag = Aes256Gcm::generate_tag(&mut OsRng);
-//    let secret = Aes256Gcm::new_from_slice(&secret.as_bytes()).unwrap();
-    let tag = Alphanumeric.sample_string(&mut OsRng, 16);
-    let tag = Tag::from_slice(&tag.as_bytes());
-    let payload = Payload {
-        msg: text.as_bytes(),
-        aad: tag
-    };
-    let cipher: AesGcm<Aes256, U16> = AesGcm::new_from_slice(format!("{:0>len$.len$}", secret, len = 32).as_bytes()).unwrap();
-    let text = cipher.encrypt(&nonce, payload).expect("Failed to encrypt the text");
-    
-    Encryption {
-        text: base64::encode(text),
-        tag: base64::encode(tag.to_vec()),
-        nonce: base64::encode(nonce.to_vec()),
-    }
+    let cipher: AesGcm<Aes256, U16> =
+        AesGcm::new_from_slice(format!("{:0>len$.len$}", secret, len = 32).as_bytes())?;
+    let ciphertext = cipher.encrypt(&nonce, text.as_bytes())?;
+
+    // The authentication tag is automatically appended by cipher.encrypt but we need to pass it to
+    // infisical. So here we extract it as a slice of the ciphertext.
+    let tag = &ciphertext[text.len()..];
+
+    Ok(Encryption {
+        text: base64::encode(&ciphertext[..text.len()]),
+        tag: base64::encode(tag),
+        nonce: base64::encode(nonce.as_slice()),
+    })
 }
 
 #[derive(Debug)]
@@ -49,27 +39,33 @@ pub fn decrypt(text: &str, nonce: &str, tag: &str, secret: &str) -> Result<Strin
     let mut ciphertext = text.clone();
     ciphertext.extend(&tag);
 
-    /*
-    let payload = Payload {
-        msg: &ciphertext,
-        aad: &tag
-    };
-*/
-    let cipher: AesGcm<Aes256, U16> = AesGcm::new_from_slice(format!("{:0>len$.len$}", secret, len = 32).as_bytes())?;
+    let cipher: AesGcm<Aes256, U16> =
+        AesGcm::new_from_slice(format!("{:0>len$.len$}", secret, len = 32).as_bytes())?;
 
     let result = cipher.decrypt(nonce, ciphertext.as_ref())?;
     let result = String::from_utf8(result).map_err(crate::error::utf8)?;
 
     Ok(result)
+}
 
-    /*
-    //(format!("{:0>len$.len$}", secret, len = 32)
-    match AesGcm::new_from_slice(format!("{:0>len$.len$}", secret, len = 32).as_bytes()) {
-        Ok(cipher) => {
-            let res = cipher.decrypt(nonce, ciphertext.as_ref())?;
-            Ok(String::from_utf8(res).map_err(crate::error::utf8)?)
-        },
-        Err(err) => Err(err)?
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encrypt_is_successful() {
+        let val = "encrypt this text, please.";
+        let secret = "secretencryptionkeyienhtenh.,hHArstnitenaritn";
+
+        let encrypted_val = encrypt(&val, &secret).unwrap();
+        let decrypted_val = decrypt(
+            &encrypted_val.text,
+            &encrypted_val.nonce,
+            &encrypted_val.tag,
+            &secret,
+        )
+        .unwrap();
+
+        assert_eq!(decrypted_val, val, "Encryption did not provide the expected result upon decryption.\nResult: {}\nExpected: {}", decrypted_val, val);
     }
-    */
 }
