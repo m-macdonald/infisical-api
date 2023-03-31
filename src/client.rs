@@ -11,7 +11,7 @@ pub struct InfisicalClient {
 }
 
 impl InfisicalClient {
-    pub fn new(api_key: String) -> Result<InfisicalClient> {
+    pub fn new(api_key: &str) -> Result<InfisicalClient> {
         InfisicalClientBuilder::new().build(api_key)
     }
 
@@ -45,11 +45,11 @@ impl InfisicalClient {
 
     pub async fn get_organization_memberships(
         &self,
-        organization_id: String,
+        organization_id: &str,
     ) -> Result<Vec<api::models::OrganizationMembership>> {
         let request = api::models::GetOrganizationMembershipsRequest {
             base_url: self.api_base.clone(),
-            organization_id,
+            organization_id: organization_id.to_string(),
         };
 
         let response = api::get_organization_memberships(&self.http_client, request)
@@ -61,15 +61,15 @@ impl InfisicalClient {
 
     pub async fn update_organization_membership(
         &self,
-        organization_id: String,
-        membership_id: String,
-        role: String,
+        organization_id: &str,
+        membership_id: &str,
+        role: &str,
     ) -> Result<api::models::OrganizationMembership> {
         let request = api::models::UpdateOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
-            organization_id,
-            membership_id,
-            role,
+            organization_id: organization_id.to_string(),
+            membership_id: membership_id.to_string(),
+            role: role.to_string(),
         };
 
         let response = api::update_organization_membership(&self.http_client, request)
@@ -81,13 +81,13 @@ impl InfisicalClient {
 
     pub async fn delete_organization_membership(
         &self,
-        organization_id: String,
-        membership_id: String,
+        organization_id: &str,
+        membership_id: &str,
     ) -> Result<api::models::OrganizationMembership> {
         let request = api::models::DeleteOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
-            organization_id,
-            membership_id,
+            organization_id: organization_id.to_string(),
+            membership_id: membership_id.to_string(),
         };
 
         let response = api::delete_organization_membership(&self.http_client, request)
@@ -99,11 +99,11 @@ impl InfisicalClient {
 
     pub async fn get_organization_projects(
         &self,
-        organization_id: String,
+        organization_id: &str,
     ) -> Result<Vec<api::models::Workspace>> {
         let request = api::models::GetProjectsRequest {
             base_url: self.api_base.clone(),
-            organization_id,
+            organization_id: organization_id.to_string(),
         };
 
         let response = api::get_organization_projects(&self.http_client, request)
@@ -115,11 +115,11 @@ impl InfisicalClient {
 
     pub async fn get_project_memberships(
         &self,
-        workspace_id: String,
+        workspace_id: &str,
     ) -> Result<Vec<api::models::ProjectMembership>> {
         let request = api::models::GetProjectMembershipsRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
+            workspace_id: workspace_id.to_string(),
         };
 
         let response = api::get_project_memberships(&self.http_client, request)
@@ -131,15 +131,15 @@ impl InfisicalClient {
 
     pub async fn update_project_membership(
         &self,
-        workspace_id: String,
-        membership_id: String,
-        role: String,
+        workspace_id: &str,
+        membership_id: &str,
+        role: &str,
     ) -> Result<api::models::ProjectMembership> {
         let request = api::models::UpdateProjectMembershipRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
-            membership_id,
-            role,
+            workspace_id: workspace_id.to_string(),
+            membership_id: membership_id.to_string(),
+            role: role.to_string(),
         };
 
         let response = api::update_project_membership(&self.http_client, request)
@@ -151,13 +151,13 @@ impl InfisicalClient {
 
     pub async fn delete_project_membership(
         &self,
-        workspace_id: String,
-        membership_id: String,
+        workspace_id: &str,
+        membership_id: &str,
     ) -> Result<api::models::ProjectMembership> {
         let request = api::models::DeleteProjectMembershipRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
-            membership_id,
+            workspace_id: workspace_id.to_string(),
+            membership_id: membership_id.to_string(),
         };
 
         let response = api::delete_project_membership(&self.http_client, request)
@@ -169,11 +169,11 @@ impl InfisicalClient {
 
     pub async fn get_encrypted_project_key(
         &self,
-        workspace_id: &String,
+        workspace_id: &str,
     ) -> Result<api::models::GetProjectKeyResponse> {
         let request = api::models::GetProjectKeyRequest {
             base_url: self.api_base.clone(),
-            workspace_id: workspace_id.clone(),
+            workspace_id: workspace_id.to_string(),
         };
 
         api::get_project_key(&self.http_client, request)
@@ -183,8 +183,8 @@ impl InfisicalClient {
 
     pub async fn get_decrypted_project_key(
         &self,
-        workspace_id: &String,
-        private_key: &String,
+        workspace_id: &str,
+        private_key: &str,
     ) -> Result<String> {
         // TODO: implement better error handling here
         let response = self.get_encrypted_project_key(workspace_id).await?;
@@ -225,21 +225,21 @@ impl InfisicalClient {
 
     pub async fn get_project_logs(
         &self,
-        workspace_id: String,
-        user_id: String,
-        offset: String,
-        limit: String,
-        sort_by: String,
-        action_names: String,
+        workspace_id: &str,
+        user_id: &str,
+        offset: &str,
+        limit: &str,
+        sort_by: &str,
+        action_names: &str,
     ) -> Result<Vec<api::models::ProjectLog>> {
         let request = api::models::GetProjectLogsRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
-            user_id,
-            offset,
-            limit,
-            sort_by,
-            action_names,
+            workspace_id: workspace_id.to_string(),
+            user_id: user_id.to_string(),
+            offset: offset.to_string(),
+            limit: limit.to_string(),
+            sort_by: sort_by.to_string(),
+            action_names: action_names.to_string(),
         };
 
         let response = api::get_project_logs(&self.http_client, request)
@@ -251,15 +251,15 @@ impl InfisicalClient {
 
     pub async fn get_project_snapshots(
         &self,
-        workspace_id: String,
-        offset: String,
-        limit: String,
+        workspace_id: &str,
+        offset: &str,
+        limit: &str,
     ) -> Result<Vec<api::models::SecretSnapshot>> {
         let request = api::models::GetProjectSnapshotsRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
-            offset,
-            limit,
+            workspace_id: workspace_id.to_string(),
+            offset: offset.to_string(),
+            limit: limit.to_string(),
         };
 
         let response = api::get_project_snapshots(&self.http_client, request)
@@ -271,12 +271,12 @@ impl InfisicalClient {
 
     pub async fn roll_back_to_snapshot(
         &self,
-        workspace_id: String,
+        workspace_id: &str,
         version: u8,
     ) -> Result<Vec<api::models::EncryptedSecret>> {
         let request = api::models::RollbackProjectToSnapshotRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
+            workspace_id: workspace_id.to_string(),
             version,
         };
 
@@ -289,14 +289,14 @@ impl InfisicalClient {
 
     pub async fn create_project_secrets(
         &self,
-        workspace_id: String,
-        environment: String,
+        workspace_id: &str,
+        environment: &str,
         secrets: Vec<api::models::SecretToCreate>,
     ) -> Result<Vec<api::models::EncryptedSecret>> {
         let request = api::models::CreateProjectSecretsRequest {
             base_url: self.api_base.clone(),
-            workspace_id,
-            environment,
+            workspace_id: workspace_id.to_string(),
+            environment: environment.to_string(),
             secrets,
         };
 
@@ -343,7 +343,7 @@ impl InfisicalClient {
             .collect()
     }
 
-    pub async fn get_private_key(&self, infisical_secret: String) -> Result<String> {
+    pub async fn get_private_key(&self, infisical_secret: &str) -> Result<String> {
         let user = self.get_user().await?;
         utils::aes256gcm::decrypt(
             &user.encrypted_private_key,
@@ -374,7 +374,7 @@ impl InfisicalClientBuilder {
         }
     }
 
-    pub fn build(mut self, api_key: String) -> Result<InfisicalClient> {
+    pub fn build(mut self, api_key: &str) -> Result<InfisicalClient> {
         // If a custom client was not provided then we create our own default client
         if self.reqwest_client_builder.is_none() {
             self.reqwest_client_builder = Some(reqwest::ClientBuilder::new());
@@ -401,8 +401,8 @@ impl InfisicalClientBuilder {
         }
     }
 
-    pub fn api_base(mut self, value: String) -> InfisicalClientBuilder {
-        self.api_base = value;
+    pub fn api_base(mut self, value: &str) -> InfisicalClientBuilder {
+        self.api_base = value.to_string();
         self
     }
 }

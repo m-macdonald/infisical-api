@@ -1,7 +1,6 @@
+use onionsalt::crypto::NaClError;
 use std::error::Error as StdError;
 use std::fmt;
-use onionsalt::crypto::NaClError;
-
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -13,7 +12,7 @@ pub(crate) type BoxError = Box<dyn StdError + Send + Sync>;
 
 struct Inner {
     kind: Kind,
-    source: Option<BoxError>
+    source: Option<BoxError>,
 }
 
 impl Error {
@@ -22,7 +21,10 @@ impl Error {
         E: Into<BoxError>,
     {
         Error {
-            inner: Box::new(Inner { kind, source: source.map(Into::into)})
+            inner: Box::new(Inner {
+                kind,
+                source: source.map(Into::into),
+            }),
         }
     }
 }
@@ -49,7 +51,7 @@ impl fmt::Display for Error {
             Kind::Reqwest => f.write_str("Reqwest error")?,
             Kind::UTF8 => f.write_str("UTF8 error")?,
             Kind::NaCl => f.write_str("NaCl error")?,
-            Kind::Builder => f.write_str("Builder error")?
+            Kind::Builder => f.write_str("Builder error")?,
         };
 
         if let Some(e) = &self.inner.source {
@@ -62,10 +64,9 @@ impl fmt::Display for Error {
 
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-       self.inner.source.as_ref().map(|e| &**e as _) 
+        self.inner.source.as_ref().map(|e| &**e as _)
     }
 }
-
 
 #[derive(Debug)]
 pub(crate) enum Kind {
@@ -74,13 +75,13 @@ pub(crate) enum Kind {
     Reqwest,
     UTF8,
     NaCl,
-    Builder
+    Builder,
 }
 
 impl From<aes_gcm::Error> for Error {
     fn from(err: aes_gcm::Error) -> Error {
-        Error::new(Kind::Decrypt, None::<Error>)    
-    } 
+        Error::new(Kind::Decrypt, None::<Error>)
+    }
 }
 
 impl From<NaClError> for Error {
@@ -90,7 +91,7 @@ impl From<NaClError> for Error {
 }
 
 // This just swallows any detail that InvalidLength would provide
-// TODO: Find a better way to handle 
+// TODO: Find a better way to handle
 impl From<aes_gcm::aes::cipher::InvalidLength> for Error {
     fn from(err: aes_gcm::aes::cipher::InvalidLength) -> Error {
         Error::new(Kind::Decrypt, None::<Error>)
@@ -106,7 +107,6 @@ impl From<reqwest::Error> for Error {
 pub(crate) fn encrypt<E: Into<BoxError>>(e: E) -> Error {
     Error::new(Kind::Encrypt, Some(e))
 }
-
 
 pub(crate) fn decrypt<E: Into<BoxError>>(e: E) -> Error {
     Error::new(Kind::Decrypt, Some(e))

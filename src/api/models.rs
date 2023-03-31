@@ -1,22 +1,22 @@
-use time::{OffsetDateTime, serde::iso8601};
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
+use time::{serde::iso8601, OffsetDateTime};
 
-use crate::utils::aes256gcm::decrypt;
 use crate::error::Result;
+use crate::utils::aes256gcm::{decrypt, Encryption};
 
 pub struct GetMyUserRequest {
-    pub base_url: String
+    pub base_url: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetMyUserResponse {
-    pub user: User
+    pub user: User,
 }
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
-//    pub seen_ips: Vec<String>,
+    //    pub seen_ips: Vec<String>,
     #[serde(alias = "_id")]
     pub id: String,
     pub email: String,
@@ -29,7 +29,7 @@ pub struct User {
     #[serde(alias = "__v")]
     pub v: u8,
     #[serde(flatten)]
-    pub audit: Audit
+    pub audit: Audit,
 }
 
 pub struct GetMyOrganizationsRequest {
@@ -38,7 +38,7 @@ pub struct GetMyOrganizationsRequest {
 
 #[derive(Deserialize)]
 pub struct GetOrganizationsResponse {
-    pub organizations: Vec<Organization>
+    pub organizations: Vec<Organization>,
 }
 
 #[derive(Deserialize)]
@@ -47,17 +47,17 @@ pub struct Organization {
     pub id: String,
     pub name: String,
     #[serde(alias = "customerId")]
-    pub customer_id: String
+    pub customer_id: String,
 }
 
 pub struct GetOrganizationMembershipsRequest {
     pub base_url: String,
-    pub organization_id: String
+    pub organization_id: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetOrganizationMembershipsResponse {
-    pub memberships: Vec<OrganizationMembership>
+    pub memberships: Vec<OrganizationMembership>,
 }
 
 #[derive(Deserialize)]
@@ -65,19 +65,19 @@ pub struct OrganizationMembership {
     pub user: User,
     pub organization: String,
     pub role: String,
-    pub status: String
+    pub status: String,
 }
 
 pub struct UpdateOrganizationMembershipRequest {
     pub base_url: String,
     pub organization_id: String,
     pub membership_id: String,
-    pub role: String
+    pub role: String,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateOrganizationMembershipResponse {
-    pub membership: OrganizationMembership
+    pub membership: OrganizationMembership,
 }
 
 pub struct DeleteOrganizationMembershipRequest {
@@ -87,17 +87,17 @@ pub struct DeleteOrganizationMembershipRequest {
 }
 
 pub struct DeleteOrganizationMembershipResponse {
-    pub membership: OrganizationMembership
+    pub membership: OrganizationMembership,
 }
 
-pub struct GetProjectsRequest{
+pub struct GetProjectsRequest {
     pub base_url: String,
-    pub organization_id: String
+    pub organization_id: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetProjectsResponse {
-    pub workspaces: Vec<Workspace>    
+    pub workspaces: Vec<Workspace>,
 }
 
 #[derive(Deserialize)]
@@ -106,23 +106,23 @@ pub struct Workspace {
     pub id: String,
     pub name: String,
     pub organization: String,
-    pub environments: Vec<Environment>
+    pub environments: Vec<Environment>,
 }
 
 #[derive(Deserialize)]
 pub struct Environment {
     pub name: String,
-    pub slug: String
+    pub slug: String,
 }
 
 pub struct GetProjectMembershipsRequest {
     pub base_url: String,
-    pub workspace_id: String
+    pub workspace_id: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetProjectMembershipsResponse {
-    pub memberships: Vec<ProjectMembership>
+    pub memberships: Vec<ProjectMembership>,
 }
 
 #[derive(Deserialize)]
@@ -135,19 +135,19 @@ pub struct ProjectMembership {
     #[serde(flatten)]
     pub audit: Audit,
     #[serde(alias = "deniedPermissions")]
-    pub denied_permissions: Vec<String>
+    pub denied_permissions: Vec<String>,
 }
 
 pub struct UpdateProjectMembershipRequest {
     pub base_url: String,
     pub workspace_id: String,
     pub membership_id: String,
-    pub role: String
+    pub role: String,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateProjectMembershipResponse {
-    pub membership: ProjectMembership
+    pub membership: ProjectMembership,
 }
 
 pub struct DeleteProjectMembershipRequest {
@@ -158,12 +158,12 @@ pub struct DeleteProjectMembershipRequest {
 
 #[derive(Deserialize)]
 pub struct DeleteProjectMembershipResponse {
-    pub membership: ProjectMembership
+    pub membership: ProjectMembership,
 }
 
 pub struct GetProjectKeyRequest {
     pub base_url: String,
-    pub workspace_id: String
+    pub workspace_id: String,
 }
 
 #[derive(Deserialize)]
@@ -173,13 +173,13 @@ pub struct GetProjectKeyResponse {
     pub nonce: String,
     pub sender: Sender,
     pub receiver: String,
-    pub workspace: String
+    pub workspace: String,
 }
 
 #[derive(Deserialize)]
 pub struct Sender {
     #[serde(alias = "publicKey")]
-    pub public_key: String
+    pub public_key: String,
 }
 
 pub struct GetProjectLogsRequest {
@@ -194,7 +194,7 @@ pub struct GetProjectLogsRequest {
 
 #[derive(Deserialize)]
 pub struct GetProjectLogsResponse {
-    pub logs: Vec<ProjectLog>
+    pub logs: Vec<ProjectLog>,
 }
 
 #[derive(Deserialize)]
@@ -211,7 +211,7 @@ pub struct ProjectLog {
     #[serde(alias = "ipAddress")]
     pub ip_address: String,
     #[serde(flatten)]
-    pub audit: Audit
+    pub audit: Audit,
 }
 
 #[derive(Deserialize)]
@@ -219,7 +219,7 @@ pub struct ProjectLogAction {
     pub name: String,
     pub user: String,
     pub workspace: String,
-    pub payload: Vec<ProjectLogActionPayload>
+    pub payload: Vec<ProjectLogActionPayload>,
 }
 
 #[derive(Deserialize)]
@@ -227,20 +227,20 @@ pub struct ProjectLogActionPayload {
     #[serde(alias = "oldSecretVersion")]
     pub old_secret_version: String,
     #[serde(alias = "newSecretVersion")]
-    pub new_secret_version: String
+    pub new_secret_version: String,
 }
 
 pub struct GetProjectSnapshotsRequest {
     pub base_url: String,
     pub workspace_id: String,
     pub offset: String,
-    pub limit: String
+    pub limit: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetProjectSnapshotsResponse {
     #[serde(alias = "secretSnapshots")]
-    pub secret_snapshots: Vec<SecretSnapshot>
+    pub secret_snapshots: Vec<SecretSnapshot>,
 }
 
 #[derive(Deserialize)]
@@ -248,24 +248,24 @@ pub struct SecretSnapshot {
     pub workspace: String,
     pub version: u8,
     #[serde(alias = "secretVersions")]
-    pub secret_versions: Vec<ProjectSecretVersion>
+    pub secret_versions: Vec<ProjectSecretVersion>,
 }
 
 #[derive(Deserialize)]
 pub struct ProjectSecretVersion {
     #[serde(alias = "_id")]
-    pub id: String 
+    pub id: String,
 }
 
 pub struct RollbackProjectToSnapshotRequest {
-    pub base_url: String, 
+    pub base_url: String,
     pub workspace_id: String,
-    pub version: u8
+    pub version: u8,
 }
 
 #[derive(Deserialize)]
 pub struct RollbackProjectToSnapshotResponse {
-    pub secrets: Vec<EncryptedSecret>
+    pub secrets: Vec<EncryptedSecret>,
 }
 
 #[derive(Deserialize)]
@@ -281,15 +281,16 @@ pub struct RollbackSecret {
     #[serde(flatten)]
     pub encrypted_secret: EncryptedSecret,
     #[serde(flatten)]
-    pub audit: Audit
-} 
+    pub audit: Audit,
+}
 
 #[derive(Serialize)]
 pub struct CreateProjectSecretsRequest {
     pub base_url: String,
+    #[serde(rename = "workspaceId")]
     pub workspace_id: String,
     pub environment: String,
-    pub secrets: Vec<SecretToCreate>
+    pub secrets: Vec<SecretToCreate>,
 }
 
 #[derive(Serialize)]
@@ -299,17 +300,19 @@ pub struct SecretToCreate {
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
-    pub value: EncryptedValue
+    pub value: EncryptedValue,
+    #[serde(flatten)]
+    pub comment: EncryptedComment,
 }
 
 #[derive(Deserialize)]
 pub struct CreateProjectSecretsResponse {
-    pub secrets: Vec<EncryptedSecret> 
+    pub secrets: Vec<EncryptedSecret>,
 }
 
 pub struct UpdateSecretsRequest {
     pub base_url: String,
-    pub secrets: Vec<SecretToUpdate>
+    pub secrets: Vec<SecretToUpdate>,
 }
 
 #[derive(Serialize)]
@@ -318,12 +321,12 @@ pub struct SecretToUpdate {
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
-    pub value: EncryptedValue
+    pub value: EncryptedValue,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateSecretsResponse {
-    pub secrets: Vec<EncryptedSecret>
+    pub secrets: Vec<EncryptedSecret>,
 }
 
 #[derive(Serialize, Debug)]
@@ -338,30 +341,30 @@ pub struct GetProjectSecretsRequest {
 
 #[derive(Deserialize)]
 pub struct GetProjectSecretsResponse {
-    pub secrets: Vec<EncryptedSecret>
+    pub secrets: Vec<EncryptedSecret>,
 }
 
 pub struct DeleteProjectSecretsRequest {
     pub base_url: String,
-    pub secret_ids: Vec<String>
+    pub secret_ids: Vec<String>,
 }
 
 #[derive(Deserialize)]
 pub struct DeleteProjectSecretsResponse {
-    pub secrets: Vec<EncryptedSecret>
+    pub secrets: Vec<EncryptedSecret>,
 }
 
 pub struct GetProjectSecretVersionsRequest {
     pub base_url: String,
     pub secret_id: String,
     pub offset: String,
-    pub limit: String
+    pub limit: String,
 }
 
 #[derive(Deserialize)]
 pub struct GetProjectSecretVersionsResponse {
     #[serde(alias = "secretVersions")]
-    pub secret_versions: Vec<SecretVersion>
+    pub secret_versions: Vec<SecretVersion>,
 }
 
 #[derive(Deserialize)]
@@ -384,13 +387,13 @@ pub struct SecretVersion {
     #[serde(alias = "__v")]
     pub v: u8,
     #[serde(flatten)]
-    pub audit: Audit
+    pub audit: Audit,
 }
 
 pub struct RollbackProjectSecretToVersionRequest {
     pub base_url: String,
     pub secret_id: String,
-    pub version: u8
+    pub version: u8,
 }
 
 pub struct RollbackProjectSecretToVersionResponse {
@@ -405,15 +408,15 @@ pub struct EncryptedSecret {
     pub workspace: String,
     #[serde(alias = "type")]
     pub secret_type: String,
- //   pub user: User,
+    //   pub user: User,
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
     pub value: EncryptedValue,
-   #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+    #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
     pub comment: Option<EncryptedComment>,
     #[serde(flatten)]
-    pub audit: Audit
+    pub audit: Audit,
 }
 
 #[derive(Debug)]
@@ -422,22 +425,36 @@ pub struct DecryptedSecret {
     pub version: u8,
     pub workspace: String,
     pub secret_type: String,
-//    pub user: User,
+    //    pub user: User,
     pub key: String,
     pub value: String,
     pub comment: Option<String>,
-    pub audit: Audit
+    pub audit: Audit,
 }
 
 impl EncryptedSecret {
     pub fn decrypt(secret: &EncryptedSecret, private_key: &str) -> Result<DecryptedSecret> {
         let mut comment = None::<String>;
-        let key = decrypt(&secret.key.ciphertext, &secret.key.iv, &secret.key.tag, private_key)?;
-        
-        let value = decrypt(&secret.value.ciphertext, &secret.value.iv, &secret.value.tag, private_key)?;
+        let key = decrypt(
+            &secret.key.ciphertext,
+            &secret.key.iv,
+            &secret.key.tag,
+            private_key,
+        )?;
+        let value = decrypt(
+            &secret.value.ciphertext,
+            &secret.value.iv,
+            &secret.value.tag,
+            private_key,
+        )?;
 
         if let Some(encrypted_comment) = &secret.comment {
-            comment = Some(decrypt(&encrypted_comment.ciphertext, &encrypted_comment.iv, &encrypted_comment.tag, private_key)?);
+            comment = Some(decrypt(
+                &encrypted_comment.ciphertext,
+                &encrypted_comment.iv,
+                &encrypted_comment.tag,
+                private_key,
+            )?);
         }
 
         Ok(DecryptedSecret {
@@ -445,43 +462,73 @@ impl EncryptedSecret {
             version: secret.version,
             workspace: secret.workspace.clone(),
             secret_type: secret.secret_type.clone(),
-//            user: secret.user.clone(),
+            //            user: secret.user.clone(),
             key,
             value,
             comment,
-            audit: secret.audit.clone()
+            audit: secret.audit.clone(),
         })
     }
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct EncryptedKey {
-    #[serde(alias = "secretKeyCiphertext")]
+    #[serde(rename = "secretKeyCiphertext")]
     pub ciphertext: String,
-    #[serde(alias = "secretKeyIV")]
+    #[serde(rename = "secretKeyIV")]
     pub iv: String,
-    #[serde(alias = "secretKeyTag")]
+    #[serde(rename = "secretKeyTag")]
     pub tag: String,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct EncryptedValue {
-    #[serde(alias = "secretValueCiphertext")]
+    #[serde(rename = "secretValueCiphertext")]
     pub ciphertext: String,
-    #[serde(alias = "secretValueIV")]
+    #[serde(rename = "secretValueIV")]
     pub iv: String,
-    #[serde(alias = "secretValueTag")]
+    #[serde(rename = "secretValueTag")]
     pub tag: String,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct EncryptedComment {
-    #[serde(alias = "secretCommentCiphertext")]
+    #[serde(rename = "secretCommentCiphertext")]
     pub ciphertext: String,
-    #[serde(alias = "secretCommentIV")]
+    #[serde(rename = "secretCommentIV")]
     pub iv: String,
-    #[serde(alias = "secretCommentTag")]
+    #[serde(rename = "secretCommentTag")]
     pub tag: String,
+}
+
+impl From<Encryption> for EncryptedComment {
+    fn from(encryption: Encryption) -> EncryptedComment {
+        EncryptedComment {
+            ciphertext: encryption.text,
+            tag: encryption.tag,
+            iv: encryption.nonce,
+        }
+    }
+}
+
+impl From<Encryption> for EncryptedValue {
+    fn from(encryption: Encryption) -> EncryptedValue {
+        EncryptedValue {
+            ciphertext: encryption.text,
+            tag: encryption.tag,
+            iv: encryption.nonce,
+        }
+    }
+}
+
+impl From<Encryption> for EncryptedKey {
+    fn from(encryption: Encryption) -> EncryptedKey {
+        EncryptedKey {
+            ciphertext: encryption.text,
+            tag: encryption.tag,
+            iv: encryption.nonce,
+        }
+    }
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -490,7 +537,5 @@ pub struct Audit {
     #[serde(with = "iso8601")]
     pub updated_at: OffsetDateTime,
     #[serde(with = "iso8601")]
-    pub created_at: OffsetDateTime
+    pub created_at: OffsetDateTime,
 }
-
-
