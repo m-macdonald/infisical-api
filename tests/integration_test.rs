@@ -1,6 +1,6 @@
 use std::{env, vec};
 
-use infisical::{self, api::models::SecretToCreate, utils::aes256gcm::encrypt};
+use infisical_rs::{api::models::SecretToCreate, utils::aes256gcm::encrypt};
 use tokio;
 mod common;
 
@@ -10,7 +10,7 @@ async fn basic() {
     common::setup();
     let (workspace_id, api_key, secret, environment) = common::load_env_vars().unwrap();
 
-    let infisical_client = infisical::client::InfisicalClient::new(&api_key).unwrap();
+    let infisical_client = infisical_rs::Client::new(&api_key).unwrap();
 
     let private_key = infisical_client.get_private_key(&secret).await.unwrap();
     println!("private key: {}", private_key);
@@ -36,7 +36,7 @@ async fn add_secret() {
     common::setup();
     let (workspace_id, api_key, secret, environment) = common::load_env_vars().unwrap();
 
-    let client = infisical::client::InfisicalClient::new(&api_key).unwrap();
+    let client = infisical_rs::Client::new(&api_key).unwrap();
     let private_key = client.get_private_key(&secret).await.unwrap();
     let project_key = client
         .get_decrypted_project_key(&workspace_id, &private_key)

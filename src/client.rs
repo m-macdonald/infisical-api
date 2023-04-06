@@ -5,18 +5,18 @@ use crate::utils;
 use onionsalt::crypto;
 use reqwest::header;
 
-pub struct InfisicalClient {
+pub struct Client {
     http_client: reqwest::Client,
     api_base: String,
 }
 
-impl InfisicalClient {
-    pub fn new(api_key: &str) -> Result<InfisicalClient> {
-        InfisicalClientBuilder::new().build(api_key)
+impl Client {
+    pub fn new(api_key: &str) -> Result<Client> {
+        ClientBuilder::new().build(api_key)
     }
 
-    pub fn builder() -> InfisicalClientBuilder {
-        InfisicalClientBuilder::new()
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::new()
     }
 
     pub async fn get_user(&self) -> Result<api::models::User> {
@@ -186,7 +186,6 @@ impl InfisicalClient {
         workspace_id: &str,
         private_key: &str,
     ) -> Result<String> {
-        // TODO: implement better error handling here
         let response = self.get_encrypted_project_key(workspace_id).await?;
 
         let mut encrypted_project_key = vec![0; 16];
@@ -195,7 +194,6 @@ impl InfisicalClient {
         let public_key = utils::base64::decode(&response.sender.public_key);
         let private_key = utils::base64::decode(&private_key);
 
-        // TODO: This really needs better error handling
         let project_nonce: [u8; 24] = project_nonce[..24]
             .try_into()
             .map_err(crate::error::decrypt)?;
@@ -355,26 +353,26 @@ impl InfisicalClient {
 }
 
 //allows a custom client to be provided if the default is not desired
-pub struct InfisicalClientBuilder {
+pub struct ClientBuilder {
     api_base: String,
     reqwest_client_builder: Option<reqwest::ClientBuilder>,
 }
 
-impl Default for InfisicalClientBuilder {
+impl Default for ClientBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl InfisicalClientBuilder {
-    pub fn new() -> InfisicalClientBuilder {
-        InfisicalClientBuilder {
+impl ClientBuilder {
+    pub fn new() -> ClientBuilder {
+        ClientBuilder {
             api_base: String::from("https://app.infisical.com/api"),
             reqwest_client_builder: None,
         }
     }
 
-    pub fn build(mut self, api_key: &str) -> Result<InfisicalClient> {
+    pub fn build(mut self, api_key: &str) -> Result<Client> {
         // If a custom client was not provided then we create our own default client
         if self.reqwest_client_builder.is_none() {
             self.reqwest_client_builder = Some(reqwest::ClientBuilder::new());
@@ -390,7 +388,7 @@ impl InfisicalClientBuilder {
         match self.reqwest_client_builder {
             Some(mut reqwest_client_builder) => {
                 reqwest_client_builder = reqwest_client_builder.default_headers(headers);
-                Ok(InfisicalClient {
+                Ok(Client {
                     http_client: reqwest_client_builder
                         .build()
                         .map_err(crate::error::builder)?,
@@ -401,8 +399,14 @@ impl InfisicalClientBuilder {
         }
     }
 
-    pub fn api_base(mut self, value: &str) -> InfisicalClientBuilder {
+    pub fn api_base(mut self, value: &str) -> ClientBuilder {
         self.api_base = value.to_string();
+        self
+    }
+
+    /// Setter for the reqwest_client_builder struct member
+    pub fn reqwest_client_builder(mut self, value: reqwest::ClientBuilder) -> ClientBuilder {
+        self.reqwest_client_builder = Some(value);
         self
     }
 }
