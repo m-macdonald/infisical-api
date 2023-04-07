@@ -60,9 +60,7 @@
 //! # }
 //! ```
 //! It's recommended that you determine your project key ahead of time as it is required for
-//! encryption and decryption functionality. There is a CLI built on top of this crate that can be
-//! used to determine your project key, however the same can be accomplished by doing the following
-//!
+//! encryption and decryption functionality.
 //! ```rust
 //! # use infisical_rs::Error;
 //! # async fn run() -> Result<(), Error> {

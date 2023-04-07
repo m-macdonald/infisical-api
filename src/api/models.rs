@@ -36,7 +36,6 @@ pub struct GetMyUserResponse {
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
-    //    pub seen_ips: Vec<String>,
     #[serde(alias = "_id")]
     pub id: String,
     pub email: String,
@@ -44,12 +43,44 @@ pub struct User {
     pub last_name: String,
     pub public_key: String,
     pub encrypted_private_key: String,
+    pub salt: String,
     pub iv: String,
     pub tag: String,
     #[serde(alias = "__v")]
     pub v: u8,
+    pub devices: Vec<UserDevice>,
+    pub encryption_version: Option<u8>,
+    pub is_mfa_enabled: bool,
+    pub mfa_methods: Vec<String>,
     #[serde(flatten)]
     pub audit: Audit,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SimpleUser {
+    #[serde(alias = "_id")]
+    pub id: String,
+    pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    #[serde(alias = "__v")]
+    pub v: u8,
+    pub devices: Vec<UserDevice>,
+    pub encryption_version: Option<u8>,
+    pub is_mfa_enabled: bool,
+    pub mfa_methods: Vec<String>,
+    #[serde(flatten)]
+    pub audit: Audit,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct UserDevice {
+    pub ip: String,
+    pub user_agent: String,
+    #[serde(alias = "_id")]
+    pub id: String,
 }
 
 pub struct GetMyOrganizationsRequest {
@@ -69,6 +100,8 @@ pub struct Organization {
     pub name: String,
     #[serde(alias = "customerId")]
     pub customer_id: String,
+    #[serde(flatten)]
+    pub audit: Audit,
 }
 
 pub struct GetOrganizationMembershipsRequest {
@@ -84,10 +117,14 @@ pub struct GetOrganizationMembershipsResponse {
 
 #[derive(Deserialize)]
 pub struct OrganizationMembership {
-    pub user: User,
+    #[serde(alias = "_id")]
+    pub id: String,
     pub organization: String,
     pub role: String,
     pub status: String,
+    pub user: SimpleUser,
+    #[serde(flatten)]
+    pub audit: Audit,
 }
 
 pub struct UpdateOrganizationMembershipRequest {
@@ -155,7 +192,7 @@ pub struct ProjectMembership {
     #[serde(alias = "_id")]
     pub id: String,
     pub role: String,
-    pub user: User,
+    pub user: SimpleUser,
     pub workspace: String,
     #[serde(flatten)]
     pub audit: Audit,
@@ -227,7 +264,7 @@ pub struct ProjectLog {
     #[serde(alias = "_id")]
     pub id: String,
     // This user does not have all fields that the User struct expects
-    pub user: User,
+    pub user: SimpleUser,
     pub workspace: String,
     #[serde(alias = "actionNames")]
     pub action_names: Vec<String>,
@@ -255,8 +292,11 @@ pub struct ProjectLogActionPayload {
     pub new_secret_version: String,
 }
 
+#[derive(Serialize)]
 pub struct GetProjectSnapshotsRequest {
+    #[serde(skip)]
     pub base_url: String,
+    #[serde(skip)]
     pub workspace_id: String,
     pub offset: String,
     pub limit: String,
@@ -270,10 +310,12 @@ pub struct GetProjectSnapshotsResponse {
 
 #[derive(Deserialize)]
 pub struct SecretSnapshot {
+    #[serde(alias = "_id")]
+    pub id: String,
     pub workspace: String,
     pub version: u8,
     #[serde(alias = "secretVersions")]
-    pub secret_versions: Vec<ProjectSecretVersion>,
+    pub secret_versions: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -302,7 +344,7 @@ pub struct RollbackSecret {
     #[serde(alias = "type")]
     pub secret_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user: Option<User>,
+    pub user: Option<SimpleUser>,
     #[serde(flatten)]
     pub encrypted_secret: EncryptedSecret,
     #[serde(flatten)]
@@ -432,16 +474,22 @@ pub struct EncryptedSecret {
     pub version: u8,
     pub workspace: String,
     #[serde(alias = "type")]
-    pub secret_type: String,
-    //   pub user: User,
+    pub type_name: String,
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
     pub value: EncryptedValue,
     #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
     pub comment: Option<EncryptedComment>,
+    // pub tags: Vec<SecretTag>,
     #[serde(flatten)]
     pub audit: Audit,
+}
+
+#[derive(Deserialize)]
+pub struct SecretTag {
+    tag: String,
+    slug: String,
 }
 
 #[derive(Debug)]
@@ -449,8 +497,7 @@ pub struct DecryptedSecret {
     pub id: String,
     pub version: u8,
     pub workspace: String,
-    pub secret_type: String,
-    //    pub user: User,
+    pub type_name: String,
     pub key: String,
     pub value: String,
     pub comment: Option<String>,
@@ -486,8 +533,7 @@ impl EncryptedSecret {
             id: secret.id.clone(),
             version: secret.version,
             workspace: secret.workspace.clone(),
-            secret_type: secret.secret_type.clone(),
-            //            user: secret.user.clone(),
+            type_name: secret.type_name.clone(),
             key,
             value,
             comment,

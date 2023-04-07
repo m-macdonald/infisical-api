@@ -1,20 +1,22 @@
 use dotenvy::dotenv;
 use std::env::{var, VarError};
 
-// Using this as an example of how testing could be done
-// This module provides an example of a setup that could be called and run from other tests
-
-pub fn setup() {
-    // This function can do setup for any functions that call it
+pub fn setup() -> Result<EnvVars, VarError> {
     dotenv().unwrap();
+
+    Ok(EnvVars {
+        workspace_id: var("WORKSPACE_ID")?,
+        api_key: var("API_KEY")?,
+        secret: var("SECRET")?,
+        environment: var("ENVIRONMENT")?,
+        organization_id: var("ORGANIZATION_ID")?,
+    })
 }
 
-pub fn load_env_vars() -> Result<(String, String, String, String, String), VarError> {
-    let workspace_id = var("WORKSPACE_ID")?;
-    let api_key = var("API_KEY")?;
-    let secret = var("SECRET")?;
-    let environment = var("ENVIRONMENT")?;
-    let organization_id = var("ORGANIZATION_ID")?;
-
-    Ok((workspace_id, api_key, secret, environment, organization_id))
+pub struct EnvVars {
+    pub workspace_id: String,
+    pub api_key: String,
+    pub secret: String,
+    pub environment: String,
+    pub organization_id: String,
 }

@@ -67,6 +67,9 @@ pub async fn get_organization_memberships(
         request.base_url, request.organization_id
     );
 
+    let res = client.get(&endpoint).send().await?;
+    println!("{}", res.text().await?);
+
     Ok(client
         .get(endpoint)
         .send()
@@ -195,7 +198,7 @@ pub async fn get_project_logs(
     request: models::GetProjectLogsRequest,
 ) -> Result<models::GetProjectLogsResponse> {
     let endpoint = format!(
-        "{}/v2/workspace/{}/logs",
+        "{}/v1/workspace/{}/logs",
         request.base_url, request.workspace_id
     );
     Ok(client
@@ -211,11 +214,13 @@ pub async fn get_project_snapshots(
     request: models::GetProjectSnapshotsRequest,
 ) -> Result<models::GetProjectSnapshotsResponse> {
     let endpoint = format!(
-        "{}/v2/workspace/{}/secret-snapshots",
+        "{}/v1/workspace/{}/secret-snapshots",
         request.base_url, request.workspace_id
     );
+
     Ok(client
         .get(endpoint)
+        .query(&request)
         .send()
         .await?
         .infisical_json::<models::GetProjectSnapshotsResponse>()
@@ -227,7 +232,7 @@ pub async fn roll_back_to_snapshot(
     request: models::RollbackProjectToSnapshotRequest,
 ) -> Result<models::RollbackProjectToSnapshotResponse> {
     let endpoint = format!(
-        "{}/v2/workspace/{}/secret-snapshots/rollback",
+        "{}/v1/workspace/{}/secret-snapshots/rollback",
         request.base_url, request.workspace_id
     );
     Ok(client
@@ -260,6 +265,9 @@ pub async fn get_project_secrets(
     request: models::GetProjectSecretsRequest,
 ) -> Result<models::GetProjectSecretsResponse> {
     let endpoint = format!("{}/v2/secrets", request.base_url);
+
+    let res = client.get(&endpoint).query(&request).send().await?;
+    println!("{}", res.text().await?);
 
     Ok(client
         .get(endpoint)
