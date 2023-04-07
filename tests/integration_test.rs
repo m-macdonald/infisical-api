@@ -1,4 +1,4 @@
-use std::{env, vec};
+use std::vec;
 
 use infisical_rs::{api::models::SecretToCreate, utils::aes256gcm::encrypt};
 use tokio;
@@ -8,7 +8,8 @@ mod common;
 #[tokio::test]
 async fn basic() {
     common::setup();
-    let (workspace_id, api_key, secret, environment) = common::load_env_vars().unwrap();
+    let (workspace_id, api_key, secret, environment, organization_id) =
+        common::load_env_vars().unwrap();
 
     let infisical_client = infisical_rs::Client::new(&api_key).unwrap();
 
@@ -34,7 +35,8 @@ async fn basic() {
 #[tokio::test]
 async fn add_secret() {
     common::setup();
-    let (workspace_id, api_key, secret, environment) = common::load_env_vars().unwrap();
+    let (workspace_id, api_key, secret, environment, organization_id) =
+        common::load_env_vars().unwrap();
 
     let client = infisical_rs::Client::new(&api_key).unwrap();
     let private_key = client.get_private_key(&secret).await.unwrap();
@@ -58,6 +60,19 @@ async fn add_secret() {
 
     let _result = client
         .create_project_secrets(&workspace_id, &environment, vec![secret])
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn get_organization_projects() {
+    common::setup();
+    let (workspace_id, api_key, secret, environment, organization_id) =
+        common::load_env_vars().unwrap();
+
+    let client = infisical_rs::Client::new(&api_key).unwrap();
+    let _org = client
+        .get_organization_projects(&organization_id)
         .await
         .unwrap();
 }

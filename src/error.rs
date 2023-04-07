@@ -2,8 +2,12 @@ use onionsalt::crypto::NaClError;
 use std::error::Error as StdError;
 use std::fmt;
 
+use crate::api::models::ErrorResponse;
+
+/// A `Result` alias where the `Err` case is `infisical_rs::Error`.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// The Errors that may occur while utilizing infisical_rs functionality
 pub struct Error {
     inner: Box<Inner>,
 }
@@ -31,7 +35,7 @@ impl Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut builder = f.debug_struct("infisical::Error");
+        let mut builder = f.debug_struct("infisical_rs::Error");
 
         builder.field("kind", &self.inner.kind);
 
@@ -52,6 +56,7 @@ impl fmt::Display for Error {
             Kind::UTF8 => f.write_str("UTF8 error")?,
             Kind::NaCl => f.write_str("NaCl error")?,
             Kind::Builder => f.write_str("Builder error")?,
+            Kind::API => f.write_str("Infisical API error")?,
         };
 
         if let Some(e) = &self.inner.source {
@@ -68,6 +73,20 @@ impl StdError for Error {
     }
 }
 
+impl StdError for ErrorResponse {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        None
+    }
+}
+
+impl fmt::Display for ErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("This is an Error Response from Infisical");
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub(crate) enum Kind {
     Encrypt,
@@ -76,6 +95,7 @@ pub(crate) enum Kind {
     UTF8,
     NaCl,
     Builder,
+    API,
 }
 
 impl From<aes_gcm::Error> for Error {
@@ -104,6 +124,12 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<ErrorResponse> for Error {
+    fn from(err: ErrorResponse) -> Error {
+        api(err)
+    }
+}
+
 pub(crate) fn encrypt<E: Into<BoxError>>(e: E) -> Error {
     Error::new(Kind::Encrypt, Some(e))
 }
@@ -118,6 +144,10 @@ pub(crate) fn reqwest<E: Into<BoxError>>(e: E) -> Error {
 
 pub(crate) fn utf8<E: Into<BoxError>>(e: E) -> Error {
     Error::new(Kind::UTF8, Some(e))
+}
+
+pub(crate) fn api<E: Into<BoxError>>(e: E) -> Error {
+    Error::new(Kind::API, Some(e))
 }
 
 pub(crate) fn nacl(e: NaClError) -> Error {

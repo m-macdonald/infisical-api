@@ -1,18 +1,38 @@
+use std::collections::HashMap;
+
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use time::{serde::iso8601, OffsetDateTime};
 
 use crate::error::Result;
 use crate::utils::aes256gcm::{decrypt, Encryption};
 
+/// An enum that represents the possible return values from the Infisical API
+///
+/// Infisical returns a 200 response even for errors on their side, but do provide a JSON response
+/// with traditional HTTP response codes and additional error information.
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum ApiResponse<T> {
+    Ok(T),
+    Err(ErrorResponse),
+}
+
+/// Represents the expected request body for the `/v2/users/me` endpoint
 pub struct GetMyUserRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
 }
 
+/// Represents the successful response for the `/v2/users/me` endpoint
 #[derive(Deserialize)]
 pub struct GetMyUserResponse {
+    /// The Infisical user contained in the response
     pub user: User,
 }
 
+/// An Infisical user representation
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
@@ -33,6 +53,7 @@ pub struct User {
 }
 
 pub struct GetMyOrganizationsRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
 }
 
@@ -51,6 +72,7 @@ pub struct Organization {
 }
 
 pub struct GetOrganizationMembershipsRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
     pub organization_id: String,
 }
@@ -69,6 +91,7 @@ pub struct OrganizationMembership {
 }
 
 pub struct UpdateOrganizationMembershipRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
     pub organization_id: String,
     pub membership_id: String,
@@ -81,6 +104,7 @@ pub struct UpdateOrganizationMembershipResponse {
 }
 
 pub struct DeleteOrganizationMembershipRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
     pub organization_id: String,
     pub membership_id: String,
@@ -91,6 +115,7 @@ pub struct DeleteOrganizationMembershipResponse {
 }
 
 pub struct GetProjectsRequest {
+    /// The base url for the Infisical API
     pub base_url: String,
     pub organization_id: String,
 }
@@ -538,4 +563,18 @@ pub struct Audit {
     pub updated_at: OffsetDateTime,
     #[serde(with = "iso8601")]
     pub created_at: OffsetDateTime,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ErrorResponse {
+    #[serde(alias = "type")]
+    pub type_name: String,
+    pub message: String,
+    pub context: HashMap<String, Value>,
+    pub level: i16,
+    pub level_name: String,
+    pub status_code: i16,
+    pub datetime_iso: String,
+    pub application: String,
+    pub extra: Vec<String>,
 }

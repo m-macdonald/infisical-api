@@ -5,16 +5,21 @@ use crate::utils;
 use onionsalt::crypto;
 use reqwest::header;
 
+/// `Client` provides a wrapper around the Infisical API that gives easy access to its endpoints
 pub struct Client {
     http_client: reqwest::Client,
     api_base: String,
 }
 
 impl Client {
+    /// Constructs a new `Client` using the default Infisical Cloud API endpoint and reqwest Client
     pub fn new(api_key: &str) -> Result<Client> {
         ClientBuilder::new().build(api_key)
     }
 
+    /// Creates a new `ClientBuilder` to allow for `Client` customization.
+    ///
+    /// This is the same as `ClientBuilder::new()`.
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }
@@ -352,7 +357,10 @@ impl Client {
     }
 }
 
-//allows a custom client to be provided if the default is not desired
+/// `ClientBuilder` can be used to create a `Client` with a custom API endpoint and/or [`Reqwest
+/// Client`]
+///
+/// [`Reqwest Client`]: reqwest::Client
 pub struct ClientBuilder {
     api_base: String,
     reqwest_client_builder: Option<reqwest::ClientBuilder>,

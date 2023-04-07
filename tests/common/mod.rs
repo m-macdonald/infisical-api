@@ -9,11 +9,12 @@ pub fn setup() {
     dotenv().unwrap();
 }
 
-pub fn load_env_vars() -> Result<(String, String, String, String), VarError> {
+pub fn load_env_vars() -> Result<(String, String, String, String, String), VarError> {
     let workspace_id = var("WORKSPACE_ID")?;
     let api_key = var("API_KEY")?;
     let secret = var("SECRET")?;
     let environment = var("ENVIRONMENT")?;
+    let organization_id = var("ORGANIZATION_ID")?;
 
-    Ok((workspace_id, api_key, secret, environment))
+    Ok((workspace_id, api_key, secret, environment, organization_id))
 }
