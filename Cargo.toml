@@ -1,11 +1,11 @@
 [package]
-name = "infisical-rs"
+name = "infisical-api"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "A rust API wrapper for the open source Infisical secret manager"
+description = "A rust API wrapper for the open source Infisical secret manager API"
 keywords = ["infisical", "secrets", "passwords"]
-repository = "https://github.com/m-macdonald/infisical-rs"
+repository = "https://github.com/m-macdonald/infisical-api"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

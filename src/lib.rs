@@ -1,11 +1,11 @@
 #![warn(missing_docs)]
 
-//! # infisical-rs
+//! # infisical-api
 //!
 //! **Note: The author of this crate is very new to Rust and has likely made many mistakes. Please
 //! feel free to open an issue or pull request for anything that can be improved.**
 //!
-//! The `infisical-rs` crate provides a [Client] wrapper around the [Infisical API](https://infisical.com/).
+//! The `infisical-api` crate provides a [Client] wrapper around the [Infisical API](https://infisical.com/).
 //! The client provides all the functionality of the Infisical API, including:
 //!
 //! - Updating Secrets
@@ -13,7 +13,7 @@
 //! - Secret Rollback
 //! - Project Management
 //!
-//! infisical_rs is built on top of reqwest and utilizes the async feature. An async runtime is
+//! infisical_api is built on top of reqwest and utilizes the async feature. An async runtime is
 //! be required in order to function
 //!
 //! The crate also includes utility functions for easy encrypting and decrypting of secrets
@@ -22,9 +22,9 @@
 //! infisical project as well as the environment (dev, test, prod, etc.).
 //!
 //! ```rust
-//! # use infisical_rs::Error;
+//! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
-//! let client = infisical_rs::Client::new("Your API key here")?;
+//! let client = infisical_api::Client::new("Your API key here")?;
 //! let secrets = client.get_encrypted_project_secrets("Your Infisical workspace ID", "Environment here");
 //!
 //! # Ok(())
@@ -33,13 +33,13 @@
 //!
 //! The [`Client`][client] defaults to the Infisical Cloud api endpoint, however a [`ClientBuilder`] is provided for more flexibility. It allows a custom API base url to be set and a custom Reqwest ClientBuilder.
 //! ```rust
-//! # use infisical_rs::Error;
+//! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
 //! let reqwest_client_builder = reqwest::Client::builder();
 //! // ...
 //! // Configure reqwest_client_builder as needed
 //! // ...
-//! let client = infisical_rs::ClientBuilder::new()
+//! let client = infisical_api::ClientBuilder::new()
 //!     .api_base("Your custom API endpoint")
 //!     .reqwest_client_builder(reqwest_client_builder)
 //!     .build("Your API key");
@@ -50,9 +50,9 @@
 //!
 //! The crate also provides the option to decrypt secrets after retrieval if desired.
 //! ```rust
-//! # use infisical_rs::Error;
+//! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
-//! let client = infisical_rs::Client::new("Your API key here")?;
+//! let client = infisical_api::Client::new("Your API key here")?;
 //! let secrets = client
 //!     .get_decrypted_project_secrets("Your Infisical workspace ID", "Environment here", "Your project key").await?;
 //!
@@ -62,11 +62,11 @@
 //! It's recommended that you determine your project key ahead of time as it is required for
 //! encryption and decryption functionality.
 //! ```rust
-//! # use infisical_rs::Error;
+//! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
-//! let client = infisical_rs::Client::new("Your API key here")?;
+//! let client = infisical_api::Client::new("Your API key here")?;
 //! let private_key = client
-//!     .get_private_key("Your infisical password here")
+//!     .get_user_decrypted_private_key("Your infisical password here")
 //!     .await?;
 //! let project_key = client
 //!     .get_decrypted_project_key("Infisical workspace ID", &private_key)

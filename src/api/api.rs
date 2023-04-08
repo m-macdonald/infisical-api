@@ -266,14 +266,27 @@ pub async fn get_project_secrets(
 ) -> Result<models::GetProjectSecretsResponse> {
     let endpoint = format!("{}/v2/secrets", request.base_url);
 
-    let res = client.get(&endpoint).query(&request).send().await?;
-    println!("{}", res.text().await?);
-
     Ok(client
         .get(endpoint)
         .query(&request)
         .send()
         .await?
         .infisical_json::<models::GetProjectSecretsResponse>()
+        .await?)
+}
+
+// This endpoint seems to be broken at the moment.
+// get a bad request response
+pub async fn get_service_tokens(
+    client: &reqwest::Client,
+    request: models::GetServiceTokensRequest,
+) -> Result<models::GetServiceTokensResponse> {
+    let endpoint = format!("{}/v2/service-token", request.base_url);
+
+    Ok(client
+        .get(endpoint)
+        .send()
+        .await?
+        .infisical_json::<models::GetServiceTokensResponse>()
         .await?)
 }
