@@ -85,6 +85,7 @@ pub mod utils;
 pub use self::client::{Client, ClientBuilder};
 #[doc(inline)]
 pub use self::error::Error;
+pub use reqwest;
 
 #[cfg(test)]
 mod tests {
