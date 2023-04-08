@@ -335,7 +335,6 @@ impl Client {
         environment: &str,
         private_key: &str,
     ) -> Result<Vec<api::models::DecryptedSecret>> {
-        // TODO: Add better error handling
         let encrypted_secrets: Vec<api::models::EncryptedSecret> = self
             .get_encrypted_project_secrets(workspace_id, environment)
             .await?;
@@ -346,7 +345,7 @@ impl Client {
             .collect()
     }
 
-    pub async fn get_private_key(&self, infisical_secret: &str) -> Result<String> {
+    pub async fn get_user_decrypted_private_key(&self, infisical_secret: &str) -> Result<String> {
         let user = self.get_user().await?;
         utils::aes256gcm::decrypt(
             &user.encrypted_private_key,

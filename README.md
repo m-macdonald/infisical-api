@@ -1,1 +1,1 @@
-# infisical-rs
+# infisical-api

@@ -611,6 +611,36 @@ pub struct Audit {
     pub created_at: OffsetDateTime,
 }
 
+pub struct GetServiceTokensRequest {
+    pub base_url: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetServiceTokensResponse {
+    pub service_token_data: ServiceToken,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceToken {
+    #[serde(alias = "_id")]
+    pub id: String,
+    pub name: String,
+    pub workspace: String,
+    pub environment: String,
+    // Current documentation does not claim a SimpleUser is returned, however the endpoint is not
+    // working for me so this is a placeholder until functionality is verified
+    pub user: SimpleUser,
+    #[serde(with = "iso8601")]
+    pub expires_at: OffsetDateTime,
+    pub encrypted_key: String,
+    pub iv: String,
+    pub tag: String,
+    #[serde(flatten)]
+    pub audit: Audit,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct ErrorResponse {
     #[serde(alias = "type")]
