@@ -4,10 +4,10 @@ use std::fmt;
 
 use crate::api::models::ErrorResponse;
 
-/// A `Result` alias where the `Err` case is `infisical_rs::Error`.
+/// A `Result` alias where the `Err` case is `infisical_api::Error`.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// The Errors that may occur while utilizing infisical_rs functionality
+/// The Errors that may occur while utilizing infisical_api functionality
 pub struct Error {
     inner: Box<Inner>,
 }
@@ -81,7 +81,7 @@ impl StdError for ErrorResponse {
 
 impl fmt::Display for ErrorResponse {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str("This is an Error Response from Infisical");
+        f.write_str("Infisical API error");
 
         Ok(())
     }
@@ -99,7 +99,7 @@ pub(crate) enum Kind {
 }
 
 impl From<aes_gcm::Error> for Error {
-    fn from(err: aes_gcm::Error) -> Error {
+    fn from(_err: aes_gcm::Error) -> Error {
         Error::new(Kind::Decrypt, None::<Error>)
     }
 }

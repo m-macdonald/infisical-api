@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 
-//! # infisical-api
+//! # infisical_api
 //!
 //! **Note: The author of this crate is very new to Rust and has likely made many mistakes. Please
 //! feel free to open an issue or pull request for anything that can be improved.**
@@ -14,7 +14,8 @@
 //! - Project Management
 //!
 //! infisical_api is built on top of reqwest and utilizes the async feature. An async runtime is
-//! be required in order to function
+//! required in order to function. A feature allowing the use of blocking calls may be provided in
+//! the future.
 //!
 //! The crate also includes utility functions for easy encrypting and decrypting of secrets
 //!

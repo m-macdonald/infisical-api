@@ -1,6 +1,6 @@
 use std::vec;
 
-use infisical_api::{api::models::SecretToCreate, client, utils::aes256gcm::encrypt};
+use infisical_api::{api::models::SecretToCreate, utils::aes256gcm::encrypt};
 use tokio;
 mod common;
 
