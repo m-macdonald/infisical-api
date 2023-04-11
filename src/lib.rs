@@ -77,18 +77,18 @@
 //! ```
 
 pub mod api;
-pub mod client;
+pub mod api_token_client;
+pub mod enums;
 pub mod error;
+pub mod service_token_client;
+mod traits;
 pub mod utils;
 
 #[doc(inline)]
-pub use self::client::{Client, ClientBuilder};
+pub use self::api_token_client::{ApiTokenClient, ApiTokenClientBuilder};
 #[doc(inline)]
 pub use self::error::Error;
+#[doc(inline)]
+pub use self::service_token_client::{ServiceTokenClient, ServiceTokenClientBuilder};
+#[doc(inline)]
 pub use reqwest;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn temp() {}
-}

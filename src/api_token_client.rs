@@ -1,31 +1,32 @@
-use crate::api;
-use crate::error::Result;
+use crate::api::{self, models};
+use crate::error::{self, Result};
+use crate::traits::Client;
 use crate::utils;
 
 use onionsalt::crypto;
 use reqwest::header;
 
 /// `Client` provides a wrapper around the Infisical API that gives easy access to its endpoints
-pub struct Client {
+pub struct ApiTokenClient {
     http_client: reqwest::Client,
     api_base: String,
 }
 
-impl Client {
+impl ApiTokenClient {
     /// Constructs a new `Client` using the default Infisical Cloud API endpoint and reqwest Client
-    pub fn new(api_key: &str) -> Result<Client> {
-        ClientBuilder::new().build(api_key)
+    pub fn new(api_key: &str) -> Result<ApiTokenClient> {
+        ApiTokenClientBuilder::new().build(api_key)
     }
 
     /// Creates a new `ClientBuilder` to allow for `Client` customization.
     ///
     /// This is the same as `ClientBuilder::new()`.
-    pub fn builder() -> ClientBuilder {
-        ClientBuilder::new()
+    pub fn builder() -> ApiTokenClientBuilder {
+        ApiTokenClientBuilder::new()
     }
 
-    pub async fn get_user(&self) -> Result<api::models::User> {
-        let request = api::models::GetMyUserRequest {
+    pub async fn get_user(&self) -> Result<models::User> {
+        let request = models::GetMyUserRequest {
             base_url: self.api_base.clone(),
         };
 
@@ -36,8 +37,8 @@ impl Client {
         Ok(response.user)
     }
 
-    pub async fn get_my_organizations(&self) -> Result<Vec<api::models::Organization>> {
-        let request = api::models::GetMyOrganizationsRequest {
+    pub async fn get_my_organizations(&self) -> Result<Vec<models::Organization>> {
+        let request = models::GetMyOrganizationsRequest {
             base_url: self.api_base.clone(),
         };
 
@@ -51,8 +52,8 @@ impl Client {
     pub async fn get_organization_memberships(
         &self,
         organization_id: &str,
-    ) -> Result<Vec<api::models::OrganizationMembership>> {
-        let request = api::models::GetOrganizationMembershipsRequest {
+    ) -> Result<Vec<models::OrganizationMembership>> {
+        let request = models::GetOrganizationMembershipsRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
         };
@@ -69,8 +70,8 @@ impl Client {
         organization_id: &str,
         membership_id: &str,
         role: &str,
-    ) -> Result<api::models::OrganizationMembership> {
-        let request = api::models::UpdateOrganizationMembershipRequest {
+    ) -> Result<models::OrganizationMembership> {
+        let request = models::UpdateOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
             membership_id: membership_id.to_string(),
@@ -88,8 +89,8 @@ impl Client {
         &self,
         organization_id: &str,
         membership_id: &str,
-    ) -> Result<api::models::OrganizationMembership> {
-        let request = api::models::DeleteOrganizationMembershipRequest {
+    ) -> Result<models::OrganizationMembership> {
+        let request = models::DeleteOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
             membership_id: membership_id.to_string(),
@@ -105,8 +106,8 @@ impl Client {
     pub async fn get_organization_projects(
         &self,
         organization_id: &str,
-    ) -> Result<Vec<api::models::Workspace>> {
-        let request = api::models::GetProjectsRequest {
+    ) -> Result<Vec<models::Workspace>> {
+        let request = models::GetProjectsRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
         };
@@ -121,8 +122,8 @@ impl Client {
     pub async fn get_project_memberships(
         &self,
         workspace_id: &str,
-    ) -> Result<Vec<api::models::ProjectMembership>> {
-        let request = api::models::GetProjectMembershipsRequest {
+    ) -> Result<Vec<models::ProjectMembership>> {
+        let request = models::GetProjectMembershipsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
         };
@@ -139,8 +140,8 @@ impl Client {
         workspace_id: &str,
         membership_id: &str,
         role: &str,
-    ) -> Result<api::models::ProjectMembership> {
-        let request = api::models::UpdateProjectMembershipRequest {
+    ) -> Result<models::ProjectMembership> {
+        let request = models::UpdateProjectMembershipRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             membership_id: membership_id.to_string(),
@@ -158,8 +159,8 @@ impl Client {
         &self,
         workspace_id: &str,
         membership_id: &str,
-    ) -> Result<api::models::ProjectMembership> {
-        let request = api::models::DeleteProjectMembershipRequest {
+    ) -> Result<models::ProjectMembership> {
+        let request = models::DeleteProjectMembershipRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             membership_id: membership_id.to_string(),
@@ -175,8 +176,8 @@ impl Client {
     pub async fn get_encrypted_project_key(
         &self,
         workspace_id: &str,
-    ) -> Result<api::models::GetProjectKeyResponse> {
-        let request = api::models::GetProjectKeyRequest {
+    ) -> Result<models::GetProjectKeyResponse> {
+        let request = models::GetProjectKeyRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
         };
@@ -234,8 +235,8 @@ impl Client {
         limit: &str,
         sort_by: &str,
         action_names: &str,
-    ) -> Result<Vec<api::models::ProjectLog>> {
-        let request = api::models::GetProjectLogsRequest {
+    ) -> Result<Vec<models::ProjectLog>> {
+        let request = models::GetProjectLogsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             user_id: user_id.to_string(),
@@ -257,8 +258,8 @@ impl Client {
         workspace_id: &str,
         offset: &str,
         limit: &str,
-    ) -> Result<Vec<api::models::SecretSnapshot>> {
-        let request = api::models::GetProjectSnapshotsRequest {
+    ) -> Result<Vec<models::SecretSnapshot>> {
+        let request = models::GetProjectSnapshotsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             offset: offset.to_string(),
@@ -276,8 +277,8 @@ impl Client {
         &self,
         workspace_id: &str,
         version: u8,
-    ) -> Result<Vec<api::models::EncryptedSecret>> {
-        let request = api::models::RollbackProjectToSnapshotRequest {
+    ) -> Result<Vec<models::EncryptedSecret>> {
+        let request = models::RollbackProjectToSnapshotRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             version,
@@ -294,9 +295,9 @@ impl Client {
         &self,
         workspace_id: &str,
         environment: &str,
-        secrets: Vec<api::models::SecretToCreate>,
-    ) -> Result<Vec<api::models::EncryptedSecret>> {
-        let request = api::models::CreateProjectSecretsRequest {
+        secrets: Vec<models::SecretToUpdate>,
+    ) -> Result<Vec<models::EncryptedSecret>> {
+        let request = models::CreateProjectSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             environment: environment.to_string(),
@@ -310,12 +311,26 @@ impl Client {
         Ok(response.secrets)
     }
 
+    pub async fn update_project_secrets(
+        &self,
+        secrets: Vec<models::SecretToUpdate>,
+    ) -> Result<Vec<models::EncryptedSecret>> {
+        let request = models::UpdateSecretsRequest {
+            base_url: self.api_base.clone(),
+            secrets,
+        };
+
+        let response = api::update_project_secrets(&self.http_client, request).await?;
+
+        Ok(response.secrets)
+    }
+
     pub async fn get_encrypted_project_secrets(
         &self,
         workspace_id: &str,
         environment: &str,
-    ) -> Result<Vec<api::models::EncryptedSecret>> {
-        let request = api::models::GetProjectSecretsRequest {
+    ) -> Result<Vec<models::EncryptedSecret>> {
+        let request = models::GetProjectSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             environment: environment.to_string(),
@@ -334,14 +349,14 @@ impl Client {
         workspace_id: &str,
         environment: &str,
         private_key: &str,
-    ) -> Result<Vec<api::models::DecryptedSecret>> {
-        let encrypted_secrets: Vec<api::models::EncryptedSecret> = self
+    ) -> Result<Vec<models::DecryptedSecret>> {
+        let encrypted_secrets: Vec<models::EncryptedSecret> = self
             .get_encrypted_project_secrets(workspace_id, environment)
             .await?;
 
         encrypted_secrets
             .iter()
-            .map(|enc_secret| api::models::EncryptedSecret::decrypt(enc_secret, private_key))
+            .map(|enc_secret| models::EncryptedSecret::decrypt(enc_secret, private_key))
             .collect()
     }
 
@@ -356,30 +371,32 @@ impl Client {
     }
 }
 
+impl Client for ApiTokenClient {}
+
 /// `ClientBuilder` can be used to create a `Client` with a custom API endpoint and/or [`Reqwest
 /// Client`]
 ///
 /// [`Reqwest Client`]: reqwest::Client
-pub struct ClientBuilder {
+pub struct ApiTokenClientBuilder {
     api_base: String,
     reqwest_client_builder: Option<reqwest::ClientBuilder>,
 }
 
-impl Default for ClientBuilder {
+impl Default for ApiTokenClientBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ClientBuilder {
-    pub fn new() -> ClientBuilder {
-        ClientBuilder {
+impl ApiTokenClientBuilder {
+    pub fn new() -> ApiTokenClientBuilder {
+        ApiTokenClientBuilder {
             api_base: String::from("https://app.infisical.com/api"),
             reqwest_client_builder: None,
         }
     }
 
-    pub fn build(mut self, api_key: &str) -> Result<Client> {
+    pub fn build(mut self, api_key: &str) -> Result<ApiTokenClient> {
         // If a custom client was not provided then we create our own default client
         if self.reqwest_client_builder.is_none() {
             self.reqwest_client_builder = Some(reqwest::ClientBuilder::new());
@@ -389,13 +406,13 @@ impl ClientBuilder {
         let mut headers = header::HeaderMap::new();
         headers.insert(
             "X-API-KEY",
-            header::HeaderValue::try_from(api_key).map_err(crate::error::reqwest)?,
+            header::HeaderValue::try_from(api_key).map_err(error::reqwest)?,
         );
 
         match self.reqwest_client_builder {
             Some(mut reqwest_client_builder) => {
                 reqwest_client_builder = reqwest_client_builder.default_headers(headers);
-                Ok(Client {
+                Ok(ApiTokenClient {
                     http_client: reqwest_client_builder
                         .build()
                         .map_err(crate::error::builder)?,
@@ -406,13 +423,16 @@ impl ClientBuilder {
         }
     }
 
-    pub fn api_base(mut self, value: &str) -> ClientBuilder {
+    pub fn api_base(mut self, value: &str) -> ApiTokenClientBuilder {
         self.api_base = value.to_string();
         self
     }
 
     /// Setter for the reqwest_client_builder struct member
-    pub fn reqwest_client_builder(mut self, value: reqwest::ClientBuilder) -> ClientBuilder {
+    pub fn reqwest_client_builder(
+        mut self,
+        value: reqwest::ClientBuilder,
+    ) -> ApiTokenClientBuilder {
         self.reqwest_client_builder = Some(value);
         self
     }

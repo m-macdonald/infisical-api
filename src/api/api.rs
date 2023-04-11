@@ -259,6 +259,21 @@ pub async fn create_project_secrets(
         .await?)
 }
 
+pub async fn update_project_secrets(
+    client: &reqwest::Client,
+    request: models::UpdateSecretsRequest,
+) -> Result<models::UpdateSecretsResponse> {
+    let endpoint = format!("{}/v2/secrets", request.base_url);
+
+    Ok(client
+        .patch(endpoint)
+        .json(&request)
+        .send()
+        .await?
+        .infisical_json::<models::UpdateSecretsResponse>()
+        .await?)
+}
+
 /// Gets all of the secrets belonging the workspace provided in the request
 pub async fn get_project_secrets(
     client: &reqwest::Client,
@@ -277,16 +292,19 @@ pub async fn get_project_secrets(
 
 // This endpoint seems to be broken at the moment.
 // get a bad request response
-pub async fn get_service_tokens(
+pub async fn get_service_token(
     client: &reqwest::Client,
     request: models::GetServiceTokensRequest,
-) -> Result<models::GetServiceTokensResponse> {
+) -> Result<models::ServiceToken> {
     let endpoint = format!("{}/v2/service-token", request.base_url);
+
+    let res = client.get(&endpoint).send().await?;
+    println!("{}", res.text().await?);
 
     Ok(client
         .get(endpoint)
         .send()
         .await?
-        .infisical_json::<models::GetServiceTokensResponse>()
+        .infisical_json::<models::ServiceToken>()
         .await?)
 }

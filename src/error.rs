@@ -57,6 +57,7 @@ impl fmt::Display for Error {
             Kind::NaCl => f.write_str("NaCl error")?,
             Kind::Builder => f.write_str("Builder error")?,
             Kind::API => f.write_str("Infisical API error")?,
+            Kind::MalformedServiceToken => f.write_str("Malformed Service Token error")?,
         };
 
         if let Some(e) = &self.inner.source {
@@ -96,6 +97,7 @@ pub(crate) enum Kind {
     NaCl,
     Builder,
     API,
+    MalformedServiceToken,
 }
 
 impl From<aes_gcm::Error> for Error {
@@ -148,6 +150,13 @@ pub(crate) fn utf8<E: Into<BoxError>>(e: E) -> Error {
 
 pub(crate) fn api<E: Into<BoxError>>(e: E) -> Error {
     Error::new(Kind::API, Some(e))
+}
+
+pub(crate) fn malformed_service_token() -> Error {
+    Error::new(
+        Kind::MalformedServiceToken,
+        Some("The provided service token does not match the expected format"),
+    )
 }
 
 pub(crate) fn nacl(e: NaClError) -> Error {

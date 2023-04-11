@@ -10,6 +10,7 @@ pub fn setup() -> Result<EnvVars, VarError> {
         secret: var("SECRET")?,
         environment: var("ENVIRONMENT")?,
         organization_id: var("ORGANIZATION_ID")?,
+        service_token: var("SERVICE_TOKEN")?,
     })
 }
 
@@ -19,4 +20,5 @@ pub struct EnvVars {
     pub secret: String,
     pub environment: String,
     pub organization_id: String,
+    pub service_token: String,
 }

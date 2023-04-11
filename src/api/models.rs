@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use time::{serde::iso8601, OffsetDateTime};
 
+use crate::enums::SecretType;
 use crate::error::Result;
 use crate::utils::aes256gcm::{decrypt, Encryption};
 
@@ -342,7 +343,7 @@ pub struct RollbackSecret {
     pub version: u8,
     pub workspace: String,
     #[serde(alias = "type")]
-    pub secret_type: Option<String>,
+    pub type_name: Option<SecretType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<SimpleUser>,
     #[serde(flatten)]
@@ -357,13 +358,15 @@ pub struct CreateProjectSecretsRequest {
     #[serde(rename = "workspaceId")]
     pub workspace_id: String,
     pub environment: String,
-    pub secrets: Vec<SecretToCreate>,
+    pub secrets: Vec<SecretToUpdate>,
 }
 
 #[derive(Serialize)]
-pub struct SecretToCreate {
-    #[serde(rename = "type")]
-    pub secret_type: String,
+pub struct SecretToUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub type_name: Option<SecretType>,
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
@@ -372,24 +375,34 @@ pub struct SecretToCreate {
     pub comment: EncryptedComment,
 }
 
+pub struct RawSecret {
+    pub id: Option<String>,
+    pub type_name: Option<SecretType>,
+    pub key: String,
+    pub value: String,
+    pub comment: String,
+}
+
 #[derive(Deserialize)]
 pub struct CreateProjectSecretsResponse {
     pub secrets: Vec<EncryptedSecret>,
 }
 
+#[derive(Serialize)]
 pub struct UpdateSecretsRequest {
+    #[serde(skip_serializing)]
     pub base_url: String,
     pub secrets: Vec<SecretToUpdate>,
 }
 
-#[derive(Serialize)]
-pub struct SecretToUpdate {
-    pub id: String,
-    #[serde(flatten)]
-    pub key: EncryptedKey,
-    #[serde(flatten)]
-    pub value: EncryptedValue,
-}
+// #[derive(Serialize)]
+// pub struct SecretToUpdate {
+//     pub id: String,
+//     #[serde(flatten)]
+//     pub key: EncryptedKey,
+//     #[serde(flatten)]
+//     pub value: EncryptedValue,
+// }
 
 #[derive(Deserialize)]
 pub struct UpdateSecretsResponse {
@@ -443,7 +456,7 @@ pub struct SecretVersion {
     pub version: u8,
     pub workspace: String,
     #[serde(alias = "type")]
-    pub secret_type: String,
+    pub type_name: SecretType,
     pub environment: String,
     #[serde(alias = "isDeleted")]
     pub is_deleted: bool,
@@ -474,7 +487,7 @@ pub struct EncryptedSecret {
     pub version: u8,
     pub workspace: String,
     #[serde(alias = "type")]
-    pub type_name: String,
+    pub type_name: SecretType,
     #[serde(flatten)]
     pub key: EncryptedKey,
     #[serde(flatten)]
@@ -497,7 +510,7 @@ pub struct DecryptedSecret {
     pub id: String,
     pub version: u8,
     pub workspace: String,
-    pub type_name: String,
+    pub type_name: SecretType,
     pub key: String,
     pub value: String,
     pub comment: Option<String>,
@@ -629,14 +642,15 @@ pub struct ServiceToken {
     pub name: String,
     pub workspace: String,
     pub environment: String,
-    // Current documentation does not claim a SimpleUser is returned, however the endpoint is not
-    // working for me so this is a placeholder until functionality is verified
-    pub user: SimpleUser,
+    // The response from the service token endpoint has changed the structure of this user a couple
+    // times. It's a lower priority value so I'm omitting it until the endpoint stabilizes.
+    // pub user: SimpleUser,
     #[serde(with = "iso8601")]
     pub expires_at: OffsetDateTime,
     pub encrypted_key: String,
     pub iv: String,
     pub tag: String,
+    pub permissions: Vec<String>,
     #[serde(flatten)]
     pub audit: Audit,
 }
