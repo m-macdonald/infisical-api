@@ -2,9 +2,6 @@
 
 //! # infisical_api
 //!
-//! **Note: The author of this crate is very new to Rust and has likely made many mistakes. Please
-//! feel free to open an issue or pull request for anything that can be improved.**
-//!
 //! The `infisical-api` crate provides a [Client] wrapper around the [Infisical API](https://infisical.com/).
 //! The client provides all the functionality of the Infisical API, including:
 //!
@@ -12,6 +9,16 @@
 //! - Accessing Secrets
 //! - Secret Rollback
 //! - Project Management
+//!
+//! There are two client options provided currently:
+//! - [`ApiTokenClient`] - No longer recommended by the Infisical team as the token that drives
+//! this client has full
+//! access to the same functionality that your user account does.
+//! - [`ServiceTokenClient`] - Preferred over the [`ApiTokenClient`]. Permissions are scoped to a
+//! specific project and environment within that project. Can also be set to read only.
+//! 
+//! The below examples will demonstrate the flow when using the [`ServiceTokenClient`] at it is
+//! preferred, however examples for each token type may be found in their respective documentation.
 //!
 //! infisical_api is built on top of reqwest and utilizes the async feature. An async runtime is
 //! required in order to function. A feature allowing the use of blocking calls may be provided in
@@ -25,14 +32,14 @@
 //! ```rust
 //! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
-//! let client = infisical_api::Client::new("Your API key here")?;
-//! let secrets = client.get_encrypted_project_secrets("Your Infisical workspace ID", "Environment here");
+//! let client = infisical_api::ServiceTokenClient::new("Your Service Token here").await?;
+//! let secrets = client.get_encrypted_secrets();
 //!
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! The [`Client`][client] defaults to the Infisical Cloud api endpoint, however a [`ClientBuilder`] is provided for more flexibility. It allows a custom API base url to be set and a custom Reqwest ClientBuilder.
+//! The [`ServiceTokenClient`][client] defaults to the Infisical Cloud api endpoint, however a [`ServiceTokenClientBuilder`] is provided for more flexibility. It allows a custom API base url to be set and a custom [`Reqwest::ClientBuilder`].
 //! ```rust
 //! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
@@ -40,10 +47,10 @@
 //! // ...
 //! // Configure reqwest_client_builder as needed
 //! // ...
-//! let client = infisical_api::ClientBuilder::new()
+//! let client = infisical_api::ServiceTokenClientBuilder::new()
 //!     .api_base("Your custom API endpoint")
 //!     .reqwest_client_builder(reqwest_client_builder)
-//!     .build("Your API key");
+//!     .build("Your Service Token");
 //!
 //! # Ok(())
 //! # }
@@ -53,25 +60,10 @@
 //! ```rust
 //! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
-//! let client = infisical_api::Client::new("Your API key here")?;
+//! let client = infisical_api::ServiceTokenClient::new("Your Service Token here").await?;
 //! let secrets = client
-//!     .get_decrypted_project_secrets("Your Infisical workspace ID", "Environment here", "Your project key").await?;
+//!     .get_decrypted_secrets().await?;
 //!
-//! # Ok(())
-//! # }
-//! ```
-//! It's recommended that you determine your project key ahead of time as it is required for
-//! encryption and decryption functionality.
-//! ```rust
-//! # use infisical_api::Error;
-//! # async fn run() -> Result<(), Error> {
-//! let client = infisical_api::Client::new("Your API key here")?;
-//! let private_key = client
-//!     .get_user_decrypted_private_key("Your infisical password here")
-//!     .await?;
-//! let project_key = client
-//!     .get_decrypted_project_key("Infisical workspace ID", &private_key)
-//!     .await?;
 //! # Ok(())
 //! # }
 //! ```

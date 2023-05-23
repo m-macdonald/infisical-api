@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use serde::de::{Deserialize, DeserializeOwned};
+use serde::de::DeserializeOwned;
 
 use crate::api::models;
 use crate::error::{self, api, Result};
@@ -290,8 +290,6 @@ pub async fn get_project_secrets(
         .await?)
 }
 
-// This endpoint seems to be broken at the moment.
-// get a bad request response
 pub async fn get_service_token(
     client: &reqwest::Client,
     request: models::GetServiceTokensRequest,
@@ -299,7 +297,6 @@ pub async fn get_service_token(
     let endpoint = format!("{}/v2/service-token", request.base_url);
 
     let res = client.get(&endpoint).send().await?;
-    println!("{}", res.text().await?);
 
     Ok(client
         .get(endpoint)

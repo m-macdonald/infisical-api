@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use time::{serde::iso8601, OffsetDateTime};
+use time::{
+    serde::iso8601, 
+    OffsetDateTime
+};
 
 use crate::enums::SecretType;
 use crate::error::Result;
@@ -95,11 +97,11 @@ pub struct GetOrganizationsResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Organization {
     #[serde(alias = "_id")]
     pub id: String,
     pub name: String,
-    #[serde(alias = "customerId")]
     pub customer_id: String,
     #[serde(flatten)]
     pub audit: Audit,
@@ -189,6 +191,7 @@ pub struct GetProjectMembershipsResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProjectMembership {
     #[serde(alias = "_id")]
     pub id: String,
@@ -197,7 +200,6 @@ pub struct ProjectMembership {
     pub workspace: String,
     #[serde(flatten)]
     pub audit: Audit,
-    #[serde(alias = "deniedPermissions")]
     pub denied_permissions: Vec<String>,
 }
 
@@ -240,8 +242,8 @@ pub struct GetProjectKeyResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Sender {
-    #[serde(alias = "publicKey")]
     pub public_key: String,
 }
 
@@ -261,17 +263,16 @@ pub struct GetProjectLogsResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProjectLog {
     #[serde(alias = "_id")]
     pub id: String,
     // This user does not have all fields that the User struct expects
     pub user: SimpleUser,
     pub workspace: String,
-    #[serde(alias = "actionNames")]
     pub action_names: Vec<String>,
     pub actions: Vec<ProjectLogAction>,
     pub channel: String,
-    #[serde(alias = "ipAddress")]
     pub ip_address: String,
     #[serde(flatten)]
     pub audit: Audit,
@@ -645,14 +646,18 @@ pub struct ServiceToken {
     // The response from the service token endpoint has changed the structure of this user a couple
     // times. It's a lower priority value so I'm omitting it until the endpoint stabilizes.
     // pub user: SimpleUser,
+    #[serde(with = "iso8601::option", default)]
+    pub expires_at: Option<OffsetDateTime>,
     #[serde(with = "iso8601")]
-    pub expires_at: OffsetDateTime,
+    pub last_used: OffsetDateTime,
     pub encrypted_key: String,
     pub iv: String,
     pub tag: String,
     pub permissions: Vec<String>,
     #[serde(flatten)]
     pub audit: Audit,
+    #[serde(alias = "__v")]
+    pub v: u8,
 }
 
 #[derive(Deserialize, Debug)]

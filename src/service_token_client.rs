@@ -185,4 +185,14 @@ impl ServiceTokenClientBuilder {
             None => unreachable!("There will always be a reqwest_client_builder at this point"),
         }
     }
+
+    pub fn api_base(mut self, value: &str) -> ServiceTokenClientBuilder {
+        self.api_base = value.to_string();
+        self
+    }
+
+    pub fn reqwest_client_builder(mut self, value: reqwest::ClientBuilder) -> ServiceTokenClientBuilder {
+        self.reqwest_client_builder = Some(value);
+        self
+    }
 }
