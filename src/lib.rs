@@ -17,8 +17,8 @@
 //! - [`ServiceTokenClient`] - Preferred over the [`ApiTokenClient`]. Permissions are scoped to a
 //! specific project and environment within that project. Can also be set to read only.
 //! 
-//! The below examples will demonstrate the flow when using the [`ServiceTokenClient`] at it is
-//! preferred, however examples for each token type may be found in their respective documentation.
+//! The below examples will demonstrate the flow when using the [`ServiceTokenClient`] a it is
+//! preferred, however examples for each client type may be found in its respective documentation.
 //!
 //! infisical_api is built on top of reqwest and utilizes the async feature. An async runtime is
 //! required in order to function. A feature allowing the use of blocking calls may be provided in
@@ -50,19 +50,20 @@
 //! let client = infisical_api::ServiceTokenClientBuilder::new()
 //!     .api_base("Your custom API endpoint")
 //!     .reqwest_client_builder(reqwest_client_builder)
-//!     .build("Your Service Token");
+//!     .build("Your Service Token")
+//!     .await?;
 //!
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! The crate also provides the option to decrypt secrets after retrieval if desired.
+//! The crate also provides the option to automatically decrypt secrets after retrieval if desired.
 //! ```rust
 //! # use infisical_api::Error;
 //! # async fn run() -> Result<(), Error> {
 //! let client = infisical_api::ServiceTokenClient::new("Your Service Token here").await?;
 //! let secrets = client
-//!     .get_decrypted_secrets().await?;
+//!     .get_secrets().await?;
 //!
 //! # Ok(())
 //! # }

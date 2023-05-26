@@ -1,7 +1,7 @@
 use std::vec;
 
 use infisical_api::{
-    api::models::{RawSecret, SecretToUpdate},
+    api::secrets::{RawSecret, SecretToUpdate},
     enums::SecretType,
     utils::aes256gcm::encrypt,
 };
@@ -45,7 +45,7 @@ async fn add_secret() {
         .unwrap();
 
     let secret = SecretToUpdate {
-        id: None,
+        name: String::from("EXTRA_SPECIAL_SECRET"),
         key: encrypt("EXTRA_SPECIAL_SECRET", &project_key)
             .unwrap()
             .into(),
@@ -55,11 +55,10 @@ async fn add_secret() {
         comment: encrypt("This is my comment for the secret", &project_key)
             .unwrap()
             .into(),
-        type_name: Some(SecretType::Shared),
+        type_name: SecretType::Shared,
     };
 
-    let _result = client
-        .create_project_secrets(&env_vars.workspace_id, &env_vars.environment, vec![secret])
+    let _result = client.create_secret(&env_vars.workspace_id, &env_vars.environment, secret)
         .await
         .unwrap();
 }
@@ -140,52 +139,3 @@ async fn get_secret_versions() {
     // let _versions = client.get
 }
 
-#[tokio::test]
-async fn get_service_token_details() {
-    let env_vars = common::setup().unwrap();
-
-    let client = infisical_api::ServiceTokenClient::new(&env_vars.service_token)
-        .await
-        .unwrap();
-    let _service_token_details = client.get_service_token_details();
-}
-
-#[tokio::test]
-async fn get_secrets() {
-    let env_vars = common::setup().unwrap();
-
-    let client = infisical_api::ServiceTokenClient::new(&env_vars.service_token)
-        .await
-        .unwrap();
-
-    let _secrets = client.get_decrypted_secrets().await.unwrap();
-}
-
-#[tokio::test]
-async fn create_secrets() {
-    let env_vars = common::setup().unwrap();
-
-    let client = infisical_api::ServiceTokenClient::new(&env_vars.service_token)
-        .await
-        .unwrap();
-
-    let _secrets = client
-        .create_secrets(vec![
-            RawSecret {
-                id: None,
-                type_name: Some(SecretType::Shared),
-                key: "SECRET_FROM_SERVICE_TOKEN".to_string(),
-                value: "Secret Value".to_string(),
-                comment: "This secret was added by ServiceTokenClient.".to_string(),
-            },
-            RawSecret {
-                id: None,
-                type_name: Some(SecretType::Shared),
-                key: "ANOTHER_SECRET_FROM_SERVICE_TOKEN".to_string(),
-                value: "Value #2".to_string(),
-                comment: "Comment #2".to_string(),
-            },
-        ])
-        .await
-        .unwrap();
-}

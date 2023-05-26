@@ -2,15 +2,17 @@ use reqwest::header;
 
 use crate::{
     api::{
-        self,
-        models::{self, EncryptedSecret},
-    },
+        secrets::*,
+        projects::*,
+        service_tokens::*
+   },
     error::{self, Result},
     traits::Client,
     utils,
+    enums::SecretType
 };
 
-/// A variation on [`Client`] that provides more limited access to the Infisical API.
+/// A variation on [`ApiTokenClient`] that provides more limited access to the Infisical API.
 /// The `ServiceTokenClent` utilizes an Infisical Service Token that is restricted to a specific project and environment
 /// within that project.
 /// This is likely the right choice for an application that doesn't need to do project management
@@ -37,72 +39,140 @@ impl ServiceTokenClient {
         ServiceTokenClientBuilder::new()
     }
 
-    pub async fn get_encrypted_secrets(&self) -> Result<Vec<models::EncryptedSecret>> {
-        let request = models::GetProjectSecretsRequest {
+    pub async fn get_encrypted_secrets(&self) -> Result<Vec<EncryptedSecret>> {
+        let request = GetSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: self.project_id.clone(),
             environment: self.environment.clone(),
-            content: String::from(""),
         };
-        let response = api::get_project_secrets(&self.http_client, request)
+        let response = get_secrets(&self.http_client, request)
             .await
             .map_err(error::reqwest)?;
 
         Ok(response.secrets)
     }
 
-    pub async fn get_decrypted_secrets(&self) -> Result<Vec<models::DecryptedSecret>> {
-        let encrypted_secrets: Vec<models::EncryptedSecret> = self.get_encrypted_secrets().await?;
-        let service_token_details = self.get_service_token_details().await?;
-        let project_key = utils::aes256gcm::decrypt(
-            &service_token_details.encrypted_key,
-            &service_token_details.iv,
-            &service_token_details.tag,
-            &self.key,
-        )?;
+    pub async fn get_encrypted_secret(&self, secret_name: &str, secret_type: &SecretType) -> Result<EncryptedSecret> {
+        let request = GetSecretRequest {
+            base_url: self.api_base.clone(),
+            secret_name: secret_name.to_string(),
+            secret_type: secret_type.clone(),
+            workspace_id: self.project_id.clone(),
+            environment: self.environment.clone()
+        };
+
+        let response = get_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
+    }
+
+    pub async fn get_secrets(&self) -> Result<Vec<DecryptedSecret>> {
+        let encrypted_secrets: Vec<EncryptedSecret> = self.get_encrypted_secrets().await?;
+        let project_key = self.get_project_key().await?;
 
         encrypted_secrets
             .iter()
-            .map(|enc_secret| models::EncryptedSecret::decrypt(enc_secret, &project_key))
+            .map(|enc_secret| EncryptedSecret::decrypt(enc_secret, &project_key))
             .collect()
+    }
+
+    pub async fn get_secret(&self, secret_name: &str, secret_type: &SecretType) -> Result<DecryptedSecret> {
+        let encrypted_secret = self.get_encrypted_secret(secret_name, secret_type).await?;
+        let project_key = self.get_project_key().await?;
+
+        EncryptedSecret::decrypt(&encrypted_secret, &project_key)
+    }
+
+    pub async fn create_secret(
+        &self,
+        secret: RawSecret
+    ) -> Result<EncryptedSecret> {
+        let project_key = self.get_project_key().await?;
+        let secret = self.encrypt_secret(&secret, &project_key)?;
+
+        let request = CreateSecretRequest {
+            base_url: self.api_base.clone(),
+            workspace_id: self.project_id.clone(),
+            environment: self.environment.clone(),
+            secret
+        };
+
+        let response = create_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
     }
 
     pub async fn create_secrets(
         &self,
-        secrets: Vec<models::RawSecret>,
+        secrets: Vec<RawSecret>,
     ) -> Result<Vec<EncryptedSecret>> {
         let project_key = self.get_project_key().await?;
-        let secrets = self.encrypt_secrets(secrets, &project_key).await?;
+        let secrets = self.encrypt_secrets(secrets, &project_key)?;
 
-        let request = models::CreateProjectSecretsRequest {
+        let request = CreateSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: self.project_id.clone(),
             environment: self.environment.clone(),
             secrets,
         };
 
-        let response = api::create_project_secrets(&self.http_client, request)
+        let response = create_project_secrets(&self.http_client, request)
             .await
             .map_err(error::reqwest)?;
 
         Ok(response.secrets)
     }
 
+    pub async fn update_secret(
+        &self,
+        secret: &RawSecret
+    ) -> Result<EncryptedSecret> {
+        let project_key = self.get_project_key().await?;
+        let secret = self.encrypt_secret(secret, &project_key)?;
+
+        let request = UpdateSecretRequest {
+            base_url: self.api_base.clone(),
+            secret
+        };
+
+        let response = update_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
+    }
+
     pub async fn update_secrets(
         &self,
-        secrets: Vec<models::RawSecret>,
+        secrets: Vec<RawSecret>,
     ) -> Result<Vec<EncryptedSecret>> {
         let project_key = self.get_project_key().await?;
-        let secrets = self.encrypt_secrets(secrets, &project_key).await?;
+        let secrets = self.encrypt_secrets(secrets, &project_key)?;
 
-        let request = models::UpdateSecretsRequest {
+        let request = UpdateSecretsRequest {
             base_url: self.api_base.clone(),
             secrets,
         };
 
-        let response = api::update_project_secrets(&self.http_client, request).await?;
+        let response = update_project_secrets(&self.http_client, request).await?;
 
         Ok(response.secrets)
+    }
+
+    pub async fn delete_secret(
+        &self,
+        secret_name: &str,
+        secret_type: &SecretType,
+    ) -> Result<EncryptedSecret> {
+        let request = DeleteSecretRequest {
+            base_url: self.api_base.clone(),
+            secret_name: secret_name.to_string(),
+            type_name: secret_type.clone(),
+            workspace_id: self.project_id.clone(),
+            environment: self.environment.clone()
+        };
+
+        let response = delete_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
     }
 
     async fn get_project_key(&self) -> Result<String> {
@@ -116,12 +186,12 @@ impl ServiceTokenClient {
         )
     }
 
-    pub async fn get_service_token_details(&self) -> Result<models::ServiceToken> {
-        let request = models::GetServiceTokensRequest {
+    pub async fn get_service_token_details(&self) -> Result<ServiceToken> {
+        let request = GetServiceTokensRequest {
             base_url: self.api_base.clone(),
         };
 
-        let service_token_details = api::get_service_token(&self.http_client, request).await?;
+        let service_token_details = get_service_token(&self.http_client, request).await?;
 
         Ok(service_token_details)
     }
@@ -169,10 +239,10 @@ impl ServiceTokenClientBuilder {
             Some(mut reqwest_client_builder) => {
                 reqwest_client_builder = reqwest_client_builder.default_headers(headers);
                 let http_client = reqwest_client_builder.build().map_err(error::builder)?;
-                let request = api::models::GetServiceTokensRequest {
+                let request = GetServiceTokensRequest {
                     base_url: self.api_base.clone(),
                 };
-                let service_token_details = api::get_service_token(&http_client, request).await?;
+                let service_token_details = get_service_token(&http_client, request).await?;
 
                 Ok(ServiceTokenClient {
                     api_base: self.api_base.clone(),

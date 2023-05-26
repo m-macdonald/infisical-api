@@ -1,8 +1,13 @@
-use crate::api::{self, models};
+use crate::api::{
+    secrets::*,
+    organizations::*,
+    projects::*,
+    users::*
+};
 use crate::error::{self, Result};
 use crate::traits::Client;
 use crate::utils;
-
+use crate::enums::SecretType;
 use onionsalt::crypto;
 use reqwest::header;
 
@@ -25,24 +30,24 @@ impl ApiTokenClient {
         ApiTokenClientBuilder::new()
     }
 
-    pub async fn get_user(&self) -> Result<models::User> {
-        let request = models::GetMyUserRequest {
+    pub async fn get_user(&self) -> Result<User> {
+        let request = GetMyUserRequest {
             base_url: self.api_base.clone(),
         };
 
-        let response = api::get_my_user(&self.http_client, request)
+        let response = get_my_user(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
         Ok(response.user)
     }
 
-    pub async fn get_my_organizations(&self) -> Result<Vec<models::Organization>> {
-        let request = models::GetMyOrganizationsRequest {
+    pub async fn get_my_organizations(&self) -> Result<Vec<Organization>> {
+        let request = GetMyOrganizationsRequest {
             base_url: self.api_base.clone(),
         };
 
-        let response = api::get_my_organizations(&self.http_client, request)
+        let response = get_my_organizations(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -52,13 +57,13 @@ impl ApiTokenClient {
     pub async fn get_organization_memberships(
         &self,
         organization_id: &str,
-    ) -> Result<Vec<models::OrganizationMembership>> {
-        let request = models::GetOrganizationMembershipsRequest {
+    ) -> Result<Vec<OrganizationMembership>> {
+        let request = GetOrganizationMembershipsRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
         };
 
-        let response = api::get_organization_memberships(&self.http_client, request)
+        let response = get_organization_memberships(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -70,15 +75,15 @@ impl ApiTokenClient {
         organization_id: &str,
         membership_id: &str,
         role: &str,
-    ) -> Result<models::OrganizationMembership> {
-        let request = models::UpdateOrganizationMembershipRequest {
+    ) -> Result<OrganizationMembership> {
+        let request = UpdateOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
             membership_id: membership_id.to_string(),
             role: role.to_string(),
         };
 
-        let response = api::update_organization_membership(&self.http_client, request)
+        let response = update_organization_membership(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -89,14 +94,14 @@ impl ApiTokenClient {
         &self,
         organization_id: &str,
         membership_id: &str,
-    ) -> Result<models::OrganizationMembership> {
-        let request = models::DeleteOrganizationMembershipRequest {
+    ) -> Result<OrganizationMembership> {
+        let request = DeleteOrganizationMembershipRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
             membership_id: membership_id.to_string(),
         };
 
-        let response = api::delete_organization_membership(&self.http_client, request)
+        let response = delete_organization_membership(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -106,13 +111,13 @@ impl ApiTokenClient {
     pub async fn get_organization_projects(
         &self,
         organization_id: &str,
-    ) -> Result<Vec<models::Workspace>> {
-        let request = models::GetProjectsRequest {
+    ) -> Result<Vec<Workspace>> {
+        let request = GetProjectsRequest {
             base_url: self.api_base.clone(),
             organization_id: organization_id.to_string(),
         };
 
-        let response = api::get_organization_projects(&self.http_client, request)
+        let response = get_organization_projects(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -122,13 +127,13 @@ impl ApiTokenClient {
     pub async fn get_project_memberships(
         &self,
         workspace_id: &str,
-    ) -> Result<Vec<models::ProjectMembership>> {
-        let request = models::GetProjectMembershipsRequest {
+    ) -> Result<Vec<ProjectMembership>> {
+        let request = GetProjectMembershipsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
         };
 
-        let response = api::get_project_memberships(&self.http_client, request)
+        let response = get_project_memberships(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -140,15 +145,15 @@ impl ApiTokenClient {
         workspace_id: &str,
         membership_id: &str,
         role: &str,
-    ) -> Result<models::ProjectMembership> {
-        let request = models::UpdateProjectMembershipRequest {
+    ) -> Result<ProjectMembership> {
+        let request = UpdateProjectMembershipRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             membership_id: membership_id.to_string(),
             role: role.to_string(),
         };
 
-        let response = api::update_project_membership(&self.http_client, request)
+        let response = update_project_membership(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -159,14 +164,14 @@ impl ApiTokenClient {
         &self,
         workspace_id: &str,
         membership_id: &str,
-    ) -> Result<models::ProjectMembership> {
-        let request = models::DeleteProjectMembershipRequest {
+    ) -> Result<ProjectMembership> {
+        let request = DeleteProjectMembershipRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             membership_id: membership_id.to_string(),
         };
 
-        let response = api::delete_project_membership(&self.http_client, request)
+        let response = delete_project_membership(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -176,13 +181,13 @@ impl ApiTokenClient {
     pub async fn get_encrypted_project_key(
         &self,
         workspace_id: &str,
-    ) -> Result<models::GetProjectKeyResponse> {
-        let request = models::GetProjectKeyRequest {
+    ) -> Result<GetProjectKeyResponse> {
+        let request = GetProjectKeyRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
         };
 
-        api::get_project_key(&self.http_client, request)
+        get_project_key(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)
     }
@@ -235,8 +240,8 @@ impl ApiTokenClient {
         limit: &str,
         sort_by: &str,
         action_names: &str,
-    ) -> Result<Vec<models::ProjectLog>> {
-        let request = models::GetProjectLogsRequest {
+    ) -> Result<Vec<ProjectLog>> {
+        let request = GetProjectLogsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             user_id: user_id.to_string(),
@@ -246,7 +251,7 @@ impl ApiTokenClient {
             action_names: action_names.to_string(),
         };
 
-        let response = api::get_project_logs(&self.http_client, request)
+        let response = get_project_logs(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -258,15 +263,15 @@ impl ApiTokenClient {
         workspace_id: &str,
         offset: &str,
         limit: &str,
-    ) -> Result<Vec<models::SecretSnapshot>> {
-        let request = models::GetProjectSnapshotsRequest {
+    ) -> Result<Vec<SecretSnapshot>> {
+        let request = GetProjectSnapshotsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             offset: offset.to_string(),
             limit: limit.to_string(),
         };
 
-        let response = api::get_project_snapshots(&self.http_client, request)
+        let response = get_project_snapshots(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -277,67 +282,123 @@ impl ApiTokenClient {
         &self,
         workspace_id: &str,
         version: u8,
-    ) -> Result<Vec<models::EncryptedSecret>> {
-        let request = models::RollbackProjectToSnapshotRequest {
+    ) -> Result<Vec<EncryptedSecret>> {
+        let request = RollbackProjectToSnapshotRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             version,
         };
 
-        let response = api::roll_back_to_snapshot(&self.http_client, request)
+        let response = roll_back_to_snapshot(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
         Ok(response.secrets)
     }
 
+    pub async fn create_secret(
+        &self,
+        workspace_id: &str,
+        environment: &str,
+        secret: SecretToUpdate,
+    ) -> Result<EncryptedSecret> {
+        let request = CreateSecretRequest {
+            base_url: self.api_base.clone(),
+            workspace_id: workspace_id.to_string(),
+            environment: environment.to_string(),
+            secret,
+        };
+
+        let response = create_secret(&self.http_client, request)
+            .await
+            .map_err(error::reqwest)?;
+
+        Ok(response.secret)
+    }
+
+    #[deprecated]
     pub async fn create_project_secrets(
         &self,
         workspace_id: &str,
         environment: &str,
-        secrets: Vec<models::SecretToUpdate>,
-    ) -> Result<Vec<models::EncryptedSecret>> {
-        let request = models::CreateProjectSecretsRequest {
+        secrets: Vec<SecretToUpdate>,
+    ) -> Result<Vec<EncryptedSecret>> {
+        let request = CreateSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             environment: environment.to_string(),
             secrets,
         };
 
-        let response = api::create_project_secrets(&self.http_client, request)
+        let response = create_project_secrets(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
         Ok(response.secrets)
     }
 
+    pub async fn update_secret(
+        &self,
+        secret: SecretToUpdate,
+        secret_name: &str
+    ) -> Result<EncryptedSecret> {
+        let request = UpdateSecretRequest {
+            base_url: self.api_base.clone(),
+            secret,
+        };
+
+        let response = update_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
+    }
+
+    #[deprecated]
     pub async fn update_project_secrets(
         &self,
-        secrets: Vec<models::SecretToUpdate>,
-    ) -> Result<Vec<models::EncryptedSecret>> {
-        let request = models::UpdateSecretsRequest {
+        secrets: Vec<SecretToUpdate>,
+    ) -> Result<Vec<EncryptedSecret>> {
+        let request = UpdateSecretsRequest {
             base_url: self.api_base.clone(),
             secrets,
         };
 
-        let response = api::update_project_secrets(&self.http_client, request).await?;
+        let response = update_project_secrets(&self.http_client, request).await?;
 
         Ok(response.secrets)
+    }
+
+    pub async fn delete_secret(
+        &self,
+        secret_name: &str,
+        secret_type: &SecretType,
+        workspace_id: &str,
+        environment: &str,
+    ) -> Result<EncryptedSecret> {
+        let request = DeleteSecretRequest {
+            base_url: self.api_base.clone(),
+            secret_name: secret_name.to_string(),
+            type_name: secret_type.clone(),
+            workspace_id: workspace_id.to_string(),
+            environment: environment.to_string()
+        };
+
+        let response = delete_secret(&self.http_client, request).await?;
+
+        Ok(response.secret)
     }
 
     pub async fn get_encrypted_project_secrets(
         &self,
         workspace_id: &str,
         environment: &str,
-    ) -> Result<Vec<models::EncryptedSecret>> {
-        let request = models::GetProjectSecretsRequest {
+    ) -> Result<Vec<EncryptedSecret>> {
+        let request = GetSecretsRequest {
             base_url: self.api_base.clone(),
             workspace_id: workspace_id.to_string(),
             environment: environment.to_string(),
-            content: String::from(""),
         };
 
-        let response = api::get_project_secrets(&self.http_client, request)
+        let response = get_secrets(&self.http_client, request)
             .await
             .map_err(crate::error::reqwest)?;
 
@@ -349,14 +410,14 @@ impl ApiTokenClient {
         workspace_id: &str,
         environment: &str,
         private_key: &str,
-    ) -> Result<Vec<models::DecryptedSecret>> {
-        let encrypted_secrets: Vec<models::EncryptedSecret> = self
+    ) -> Result<Vec<DecryptedSecret>> {
+        let encrypted_secrets: Vec<EncryptedSecret> = self
             .get_encrypted_project_secrets(workspace_id, environment)
             .await?;
 
         encrypted_secrets
             .iter()
-            .map(|enc_secret| models::EncryptedSecret::decrypt(enc_secret, private_key))
+            .map(|enc_secret| EncryptedSecret::decrypt(enc_secret, private_key))
             .collect()
     }
 

@@ -2,7 +2,7 @@ use onionsalt::crypto::NaClError;
 use std::error::Error as StdError;
 use std::fmt;
 
-use crate::api::models::ErrorResponse;
+use crate::api::ErrorResponse;
 
 /// A `Result` alias where the `Err` case is `infisical_api::Error`.
 pub type Result<T> = std::result::Result<T, Error>;
